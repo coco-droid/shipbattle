@@ -1,0 +1,3 @@
+#include "./headers/resource.h"
+
+IDI_ICON1 ICON "medias/images/logo.ico"

@@ -1,0 +1,1 @@
+gcc first.c -o main -I"C:\Users\t4u\Documents\my c program\game\shipbattle\include\SDL2" -L"C:\Users\t4u\Documents\my c program\game\shipbattle\lib" -w -Wl,-subsystem,windows -lmingw32 -lSDL2main -lSDL2

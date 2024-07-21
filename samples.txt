@@ -1,0 +1,28 @@
+#include "headers/graphics.h"
+
+int main(int argc, char* argv[]) {
+    init_graphics();
+
+    // Initialisation de l'écran du menu
+    init_menu_screen();
+
+    // Boucle principale du jeu
+    while (1) {
+        // Gestion des événements
+        handle_events();
+
+        // Affichage de l'écran du menu
+        draw_menu_screen();
+
+        // Transition vers l'écran de jeu
+        init_game_screen();
+        while (game_is_running) {
+            handle_game_events();
+            update_game_state();
+            draw_game_screen();
+        }
+    }
+
+    cleanup_graphics();
+    return 0;
+}
