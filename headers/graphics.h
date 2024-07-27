@@ -1,9 +1,10 @@
-#ifndef GRAPHIC_H
-#define GRAPHIC_H
+#ifndef GRAPHICS_H
+#define GRAPHICS_H
 
 #include <SDL2/SDL.h>
 
-void SetRoundedCorners(SDL_Window* window);
-SDL_Window* CreateRoundedWindow(const char* title, int x, int y, int w, int h, Uint32 flags);
+// Function prototypes
+SDL_Window* CreateRoundedWindow(const char *title, int x, int y, int w, int h, Uint32 flags);
+void CreateClickableElement(SDL_Renderer* renderer, int x, int y, int w, int h, const char* text, SDL_Color textColor, const char* imagePath, void (*callback)(void));
 
-#endif // GRAPHIC_H
+#endif // GRAPHICS_H

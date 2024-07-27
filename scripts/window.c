@@ -1,87 +1,51 @@
-#include <SDL2/SDL.h>
+#include "../headers/window.h"
+#include "../headers/graphics.h"
+#include "../headers/events.h"
 #include <SDL2/SDL_image.h>
 #include <stdio.h>
-#include "headers/graphics.h"
 
-// Define window dimensions
-const int WINDOW_WIDTH = 600;
-const int WINDOW_HEIGHT = 600;
+FILE *logFile;
 
-void starting_menu(int argc, char *argv[]) {
-    // Initialize SDL
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        printf("SDL Initialization Error: %s\n", SDL_GetError());
-        return -1;
+// Définition du pointeur 'alive'
+
+void Button1Callback(SDL_Event *event) {
+    if (event->type == SDL_MOUSEBUTTONDOWN) {
+        SDL_Log("Button 1 clicked!\n");
+        if (alive) {
+            *alive = 0; // Change la valeur du pointeur 'alive' au clic
+        }
     }
+}
 
-    // Initialize SDL_image
-    if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
-        printf("SDL_image Initialization Error: %s\n", IMG_GetError());
-        SDL_Quit();
-        return -1;
+void Button2Callback(SDL_Event *event) {
+    if (event->type == SDL_MOUSEBUTTONDOWN) {
+        SDL_Log("Button 2 clicked!\n");
+        if (alive) {
+            *alive = 0; // Change la valeur du pointeur 'alive' au clic
+        }
     }
+}
 
-    // Create a window with rounded corners
-    SDL_Window *window = CreateRoundedWindow("Rounded Corner Window",
-                                             SDL_WINDOWPOS_UNDEFINED,
-                                             SDL_WINDOWPOS_UNDEFINED,
-                                             WINDOW_WIDTH,
-                                             WINDOW_HEIGHT,
-                                             SDL_WINDOW_BORDERLESS | SDL_WINDOW_ALWAYS_ON_TOP);
-    if (!window) {
-        printf("Window Creation Error: %s\n", SDL_GetError());
-        IMG_Quit();
-        SDL_Quit();
-        return -1;
-    }
-
-    // Create renderer
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    if (!renderer) {
-        printf("Renderer Creation Error: %s\n", SDL_GetError());
-        SDL_DestroyWindow(window);
-        IMG_Quit();
-        SDL_Quit();
-        return -1;
-    }
-
-    // Set the blend mode to allow transparency
-    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+void ShowStartupMenu(SDL_Window* window, SDL_Renderer* renderer) {
+    // Initialize log
+    InitLogFile("logs.txt");
 
     // Load the background image
     SDL_Surface *backgroundSurface = IMG_Load("medias/images/bg-first.png");
     if (!backgroundSurface) {
-        printf("Image Load Error: %s\n", IMG_GetError());
-        SDL_DestroyRenderer(renderer);
-        SDL_DestroyWindow(window);
-        IMG_Quit();
-        SDL_Quit();
-        return -1;
+        LogMessage("Image Load Error: %s\n", IMG_GetError());
+        return;
     }
+    LogMessage("Background image loaded.\n");
 
     SDL_Texture *backgroundTexture = SDL_CreateTextureFromSurface(renderer, backgroundSurface);
     SDL_FreeSurface(backgroundSurface);
     if (!backgroundTexture) {
-        printf("Texture Creation Error: %s\n", SDL_GetError());
-        SDL_DestroyRenderer(renderer);
-        SDL_DestroyWindow(window);
-        IMG_Quit();
-        SDL_Quit();
-        return -1;
+        LogMessage("Texture Creation Error: %s\n", SDL_GetError());
+        return;
     }
-
-    // Event loop
-    SDL_Event e;
-    int quit = 0;
-    while (!quit) {
-        while (SDL_PollEvent(&e) != 0) {
-            if (e.type == SDL_QUIT) {
-                quit = 1;
-            }
-        }
-
-        // Clear the renderer with a fully transparent color
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0); // Fully transparent color
+    LogMessage("Texture created.\n");
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
         // Render the background texture
@@ -89,14 +53,28 @@ void starting_menu(int argc, char *argv[]) {
 
         // Present the renderer
         SDL_RenderPresent(renderer);
+    // Register event callbacks
+    RegisterEventCallback(SDL_MOUSEBUTTONDOWN, Button1Callback);
+    RegisterEventCallback(SDL_MOUSEBUTTONDOWN, Button2Callback);
+
+    // Initialize the alive flag
+    int aliveFlag = 1;
+    alive = &aliveFlag;
+
+    // Main loop to handle events and render
+    while (*alive) {
+        // Handle events
+        SDL_Event e;
+        while (SDL_PollEvent(&e) != 0) {
+            if (e.type == SDL_QUIT) {
+                *alive = 0; // Exit the loop if the window is closed
+            }
+            ProcessEvents(window, renderer);
+        }
+        // Clear the screen with a black color
     }
 
-    // Cleanup and quit
+    // Cleanup
     SDL_DestroyTexture(backgroundTexture);
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    IMG_Quit();
-    SDL_Quit();
-
-    return 0;
+    CloseLogFile();
 }

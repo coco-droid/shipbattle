@@ -1,0 +1,2 @@
+Background image loaded.
+Texture created.
