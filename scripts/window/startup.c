@@ -15,23 +15,23 @@ void Button1Callback(SDL_Event *event) {
     if (event->type == SDL_MOUSEBUTTONDOWN) {
         LogMessage("Button 1 clicked!\n");
         Dialog_1(first_window,first_renderer);
+        ClearEvents();
     }
 }
 
 void Button2Callback(SDL_Event *event) {
      InitLogFile("logs.txt");
     if (event->type == SDL_MOUSEBUTTONDOWN) {
-        LogMessage("Button 2 clicked!\n");
+        //LogMessage("Button 2 clicked!\n");
     }
 }
 void Button3Callback(SDL_Event *event) {
     InitLogFile("logs.txt");
+    LogMessage('button click');
     if (event->type == SDL_MOUSEBUTTONDOWN) {
-      if (*alive) {
-        LogMessage("Button 3 clicked!\n");
-                    *alive = 0;  // Met à jour la valeur de 'alive' pour signaler la fin de la session
+         if (alive) {
+                    *alive = 0;
                 }
-              
     }
 }
 void ShowStartupMenu(SDL_Window* window, SDL_Renderer* renderer) {
@@ -81,7 +81,7 @@ void ShowStartupMenu(SDL_Window* window, SDL_Renderer* renderer) {
     CreateClickableElement(renderer,558,11,&width3,&height3,NULL, textColor,"medias/images/btn-close.png",Button3Callback,12);
     SDL_RenderPresent(renderer);
     // Main loop to handle events and render
-    while (*alive) {
+  while (*alive) {
         // Handle events
         SDL_Event e;
         while (SDL_PollEvent(&e) != 0) {

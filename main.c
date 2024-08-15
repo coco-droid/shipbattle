@@ -65,9 +65,7 @@ int main(int argc, char *argv[]) {
     InitEvents();
 
     // Declare and initialize the alive flag
-    int aliveFlag = 1;
-    alive = &aliveFlag;
-
+    
     // Show the startup menu
     ShowStartupMenu(first_window,first_renderer);
     //Dialog_1(first_window,first_renderer);

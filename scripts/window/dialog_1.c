@@ -12,6 +12,7 @@ void BeforeCallback(SDL_Event *event) {
     if (event->type == SDL_MOUSEBUTTONDOWN) {
         LogMessage("Button 1 clicked!\n");
         ShowStartupMenu(first_window,first_renderer);
+        ClearEvents();
     }
 }
 
@@ -25,10 +26,7 @@ void AfterCallback(SDL_Event *event) {
 void CloseCallback(SDL_Event *event) {
     InitLogFile("logs.txt");
     if (event->type == SDL_MOUSEBUTTONDOWN) {
-        if (*alive) {
-            LogMessage("Button 3 clicked!\n");
-            *alive = 0;  // Met à jour la valeur de 'alive' pour signaler la fin de la session
-        }
+       *alive=0;
     }
 }
 
@@ -131,8 +129,6 @@ void Dialog_1(SDL_Window* window, SDL_Renderer* renderer) {
     // Initialize log
     InitLogFile("logs.txt");
     // Main loop to handle events and render
-    int aliveFlag = 1;
-    alive = &aliveFlag;
     SDL_Event e;
     LogMessage("dialog 1 launch");
         // Clear the screen before rendering
@@ -141,7 +137,7 @@ void Dialog_1(SDL_Window* window, SDL_Renderer* renderer) {
 
         // Render the background texture
         //SDL_RenderCopy(renderer, backgroundTexture, NULL, NULL);
-
+        while(*alive){
         // Load and render the first image (448px height)
         SDL_Surface *image1Surface = IMG_Load("medias/images/dialog_1.png");
         if (!image1Surface) {
@@ -183,7 +179,7 @@ void Dialog_1(SDL_Window* window, SDL_Renderer* renderer) {
         SDL_RenderPresent(renderer);
 
         // Handle events
-        while (SDL_PollEvent(&e) != 0) {
+       while (SDL_PollEvent(&e) != 0 && *alive) {
             if (e.type == SDL_QUIT) {
                 *alive = 0; // Exit the loop if the window is closed
             }
@@ -191,6 +187,7 @@ void Dialog_1(SDL_Window* window, SDL_Renderer* renderer) {
         }
     }
     // Cleanup
-   // SDL_DestroyTexture(backgroundTexture);
-    //CloseLogFile();
+   
+   CloseLogFile();
+}
 

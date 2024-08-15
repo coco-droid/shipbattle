@@ -11,8 +11,8 @@ static int numAreas = 0;
 // Variables pour suivre l'état de la souris
 static bool isDragging = false;
 static ClickableArea* currentDragArea = NULL;
-int *alive;
-
+int aliveValue = 1; // Valeur initiale
+int *alive = &aliveValue;
 // Initialise le module d'événements
 void InitEvents(void) {
     for (int i = 0; i < MAX_CALLBACKS; i++) {
@@ -100,4 +100,13 @@ void ProcessEvents(SDL_Window* window, SDL_Renderer* renderer) {
         }
     }
 }
-
+void ClearEvents(void) {
+    for (int i = 0; i < MAX_CALLBACKS; i++) {
+        clickableAreas[i].onClick = NULL;
+        clickableAreas[i].onHover = NULL;
+        clickableAreas[i].onDragStart = NULL;
+        clickableAreas[i].onDragMove = NULL;
+        clickableAreas[i].onDragEnd = NULL;
+    }
+    numAreas = 0;
+}

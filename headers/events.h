@@ -21,7 +21,7 @@ void InitEvents(void);
 
 // Fonction pour enregistrer un callback pour une zone
 void RegisterClickableArea(ClickableArea area);
-
+void ClearEvents(void);
 // Fonction pour gérer les événements SDL
 void ProcessEvents(SDL_Window* window, SDL_Renderer* renderer);
 
