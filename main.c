@@ -3,10 +3,10 @@
 #include <SDL2/SDL_ttf.h>
 #include <stdio.h>
 #include "headers/graphics.h"
-#include "headers/window.h"
+#include "headers/window/startup.h"
 #include "headers/events.h"
 #include "headers/log.h"
-
+#include "headers/window/dialog_1.h"
 // Define window dimensions
 const int WINDOW_WIDTH = 600;
 const int WINDOW_HEIGHT = 600;
@@ -33,13 +33,13 @@ int main(int argc, char *argv[]) {
     }
 
     // Create a window with rounded corners
-    SDL_Window *window = CreateRoundedWindow("Rounded Corner Window",
+    first_window = CreateRoundedWindow("Rounded Corner Window",
                                              SDL_WINDOWPOS_UNDEFINED,
                                              SDL_WINDOWPOS_UNDEFINED,
                                              WINDOW_WIDTH,
                                              WINDOW_HEIGHT,
                                              SDL_WINDOW_BORDERLESS | SDL_WINDOW_ALWAYS_ON_TOP);
-    if (!window) {
+    if (!first_window) {
         SDL_Log("Window Creation Error: %s\n", SDL_GetError());
         TTF_Quit();
         IMG_Quit();
@@ -48,10 +48,10 @@ int main(int argc, char *argv[]) {
     }
 
     // Create renderer
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    if (!renderer) {
+    first_renderer = SDL_CreateRenderer(first_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    if (!first_renderer) {
         SDL_Log("Renderer Creation Error: %s\n", SDL_GetError());
-        SDL_DestroyWindow(window);
+        SDL_DestroyWindow(first_window);
         TTF_Quit();
         IMG_Quit();
         SDL_Quit();
@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Set the blend mode to allow transparency
-    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawBlendMode(first_renderer, SDL_BLENDMODE_BLEND);
 
     // Initialize events
     InitEvents();
@@ -69,16 +69,16 @@ int main(int argc, char *argv[]) {
     alive = &aliveFlag;
 
     // Show the startup menu
-    ShowStartupMenu(window, renderer);
-
+    ShowStartupMenu(first_window,first_renderer);
+    //Dialog_1(first_window,first_renderer);
     // Main loop
     while (*alive) {
-            ProcessEvents(window, renderer);
+            ProcessEvents(first_window,first_renderer);
     }
 
     // Cleanup and quit
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
+    SDL_DestroyRenderer(first_renderer);
+    SDL_DestroyWindow(first_window);
     TTF_Quit();
     IMG_Quit();
     SDL_Quit();

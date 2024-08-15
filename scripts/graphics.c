@@ -7,6 +7,8 @@
 #include "../headers/events.h"
 #include <stdio.h>
 
+SDL_Window *first_window = NULL;
+SDL_Renderer *first_renderer = NULL;
 void SetRoundedCorners(SDL_Window* window) {
     SDL_SysWMinfo wmInfo;
     SDL_VERSION(&wmInfo.version);  // Initialize wmInfo
