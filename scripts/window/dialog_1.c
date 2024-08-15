@@ -1,4 +1,5 @@
 #include "../../headers/window/dialog_1.h"
+#include "../../headers/window/dialog_2.h"
 #include "../../headers/window/startup.h"
 #include "../../headers/graphics.h"
 #include "../../headers/events.h"
@@ -8,123 +9,30 @@
 #include <stdio.h>
 #include "../../headers/log.h"
 #include <string.h>
-void BeforeCallback(SDL_Event *event) {
+void BeforeCallback1(SDL_Event *event) {
     InitLogFile("logs.txt");
     if (event->type == SDL_MOUSEBUTTONDOWN) {
         LogMessage("Button 1 clicked!\n");
-        ShowStartupMenu(first_window,first_renderer);
         ClearEvents();
+        ShowStartupMenu(first_window,first_renderer);
     }
 }
 
-void AfterCallback(SDL_Event *event) {
+void AfterCallback1(SDL_Event *event) {
     InitLogFile("logs.txt");
     if (event->type == SDL_MOUSEBUTTONDOWN) {
+        Dialog_2(first_window,first_renderer);
         LogMessage("Button 2 clicked!\n");
     }
 }
 
-void CloseCallback(SDL_Event *event) {
+void CloseCallback1(SDL_Event *event) {
     InitLogFile("logs.txt");
     if (event->type == SDL_MOUSEBUTTONDOWN) {
        *alive=0;
     }
 }
 
-void RenderText(SDL_Renderer* renderer, const char* text, int x, int y, SDL_Color color, int fontSize, int maxWidth) {
-    // Load the font
-    TTF_Font* font = TTF_OpenFont("medias/font/Sora.ttf", fontSize);
-    if (!font) {
-        printf("Failed to load font: %s\n", TTF_GetError());
-        return;
-    }
-
-    // Variables for managing the text rendering
-    char buffer[1024];
-    const char* word;
-    char line[1024] = "";
-    int lineHeight = TTF_FontHeight(font);
-    int offsetY = 0;
-
-    // Split the input text into words
-    strncpy(buffer, text, sizeof(buffer) - 1);
-    word = strtok(buffer, " ");
-
-    // Loop over words and construct lines
-    while (word != NULL) {
-        char testLine[1024];
-        snprintf(testLine, sizeof(testLine), "%s %s", line, word);
-
-        // Render test surface to check the width of the line
-        SDL_Surface* testSurface = TTF_RenderText_Blended(font, testLine, color);
-        if (testSurface == NULL) {
-            printf("Failed to render text: %s\n", TTF_GetError());
-            break;
-        }
-
-        if (testSurface->w > maxWidth) {
-            // Render the current line as it fits
-            SDL_Surface* textSurface = TTF_RenderText_Blended(font, line, color);
-            if (!textSurface) {
-                printf("Failed to render text: %s\n", TTF_GetError());
-                break;
-            }
-
-            SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
-            SDL_FreeSurface(textSurface);
-
-            // Get the dimensions of the text
-            int textW, textH;
-            SDL_QueryTexture(textTexture, NULL, NULL, &textW, &textH);
-
-            // Set the text position
-            SDL_Rect textRect = {x, y + offsetY, textW, textH};
-
-            // Render the text
-            SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
-            SDL_DestroyTexture(textTexture);
-
-            // Move to the next line
-            offsetY += lineHeight;
-            strncpy(line, word, sizeof(line) - 1);
-        } else {
-            // Add word to the current line
-            strncpy(line, testLine, sizeof(line) - 1);
-        }
-
-        // Clean up the test surface
-        SDL_FreeSurface(testSurface);
-
-        // Move to the next word
-        word = strtok(NULL, " ");
-    }
-
-    // Render the last line
-    if (strlen(line) > 0) {
-        SDL_Surface* textSurface = TTF_RenderText_Blended(font, line, color);
-        if (!textSurface) {
-            printf("Failed to render text: %s\n", TTF_GetError());
-            return;
-        }
-
-        SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
-        SDL_FreeSurface(textSurface);
-
-        // Get the dimensions of the text
-        int textW, textH;
-        SDL_QueryTexture(textTexture, NULL, NULL, &textW, &textH);
-
-        // Set the text position
-        SDL_Rect textRect = {x, y + offsetY, textW, textH};
-
-        // Render the text
-        SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
-        SDL_DestroyTexture(textTexture);
-    }
-
-    // Clean up
-    TTF_CloseFont(font);
-}
 
 void Dialog_1(SDL_Window* window, SDL_Renderer* renderer) {
     // Initialize log
@@ -140,7 +48,7 @@ void Dialog_1(SDL_Window* window, SDL_Renderer* renderer) {
         //SDL_RenderCopy(renderer, backgroundTexture, NULL, NULL);
         while(*alive){
         // Load and render the first image (448px height)
-        SDL_Surface *image1Surface = IMG_Load("medias/images/dialog_1.png");
+        SDL_Surface *image1Surface = IMG_Load("medias/images/dialog_1.jpeg");
         if (!image1Surface) {
             LogMessage("Image Load Error: %s\n", IMG_GetError());
             return;
@@ -173,9 +81,9 @@ void Dialog_1(SDL_Window* window, SDL_Renderer* renderer) {
         // Render the buttons
         int width3 = 30;
         int height3 = 30;
-        CreateClickableElement(renderer, 558, 11, &width3, &height3, NULL, textColor, "medias/images/btn-close.png", CloseCallback, 12);
-        CreateClickableElement(renderer, 12, 11, &width3, &height3, NULL, textColor, "medias/images/left-arrow.png", BeforeCallback, 12);
-
+        CreateClickableElement(renderer, 558, 11, &width3, &height3, NULL, textColor, "medias/images/btn-close.png", CloseCallback1, 12);
+        CreateClickableElement(renderer, 12, 11, &width3, &height3, NULL, textColor, "medias/images/left-arrow.png", BeforeCallback1, 12);
+        CreateClickableElement(renderer, 558, 550, &width3, &height3, NULL, textColor, "medias/images/right-arrow.png", AfterCallback1, 12);
         // Present the rendered content on the screen
         SDL_RenderPresent(renderer);
 

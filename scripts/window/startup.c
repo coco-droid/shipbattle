@@ -15,8 +15,8 @@ void Button1Callback(SDL_Event *event) {
     InitLogFile("logs.txt");
     if (event->type == SDL_MOUSEBUTTONDOWN) {
         LogMessage("Button 1 clicked!\n");
-        Dialog_1(first_window,first_renderer);
         ClearEvents();
+        Dialog_1(first_window,first_renderer);
     }
 }
 
@@ -61,12 +61,6 @@ void ShowStartupMenu(SDL_Window* window, SDL_Renderer* renderer) {
         // Render the background texture
         SDL_RenderCopy(renderer, backgroundTexture, NULL, NULL);
 
-        // Present the renderer
-        
-    // Register event callbacks
-   /* RegisterEventCallback(SDL_MOUSEBUTTONDOWN, Button1Callback);
-    RegisterEventCallback(SDL_MOUSEBUTTONDOWN, Button2Callback);
-    RegisterEventCallback(SDL_MOUSEBUTTONDOWN, Button3Callback);*/
     // Initialize the alive flag
     int aliveFlag = 1;
     alive = &aliveFlag;
