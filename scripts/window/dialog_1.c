@@ -6,6 +6,7 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>  // Include SDL_ttf for text rendering
 #include <stdio.h>
+#include "../../headers/log.h"
 #include <string.h>
 void BeforeCallback(SDL_Event *event) {
     InitLogFile("logs.txt");

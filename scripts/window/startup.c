@@ -5,6 +5,7 @@
 #include <SDL2/SDL_ttf.h>
 #include "../../headers/window/dialog_1.h"
 #include <stdio.h>
+#include "../../headers/log.h"
 
 
 
