@@ -3,18 +3,27 @@
 
 #include <SDL2/SDL.h>
 
-typedef void (*EventCallback)(SDL_Event *event);
-
-// Déclaration externe du pointeur 'alive'
+// Définition du type de callback pour les événements
+typedef void (*EventCallback)(SDL_Event*);
 extern int *alive;
+// Structure pour gérer les zones cliquables
+typedef struct {
+    int x, y, width, height;
+    EventCallback onClick;
+    EventCallback onHover;
+    EventCallback onDragStart;
+    EventCallback onDragEnd;
+    EventCallback onDragMove;
+} ClickableArea;
 
-// Initialise le module d'événements
+// Fonction d'initialisation des événements
 void InitEvents(void);
 
-// Enregistre un callback pour un type d'événement spécifique
-void RegisterEventCallback(Uint32 eventType, EventCallback callback);
+// Fonction pour enregistrer un callback pour une zone
+void RegisterClickableArea(ClickableArea area);
 
-// Gère les événements SDL, incluant la boucle d'événements
+// Fonction pour gérer les événements SDL
 void ProcessEvents(SDL_Window* window, SDL_Renderer* renderer);
 
 #endif // EVENTS_H
+

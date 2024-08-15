@@ -1,8 +1,10 @@
 #include "../headers/graphics.h"
+#include "../headers/log.h"
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_syswm.h>
 #include <windows.h>
+#include "../headers/events.h"
 #include <stdio.h>
 
 void SetRoundedCorners(SDL_Window* window) {
@@ -30,71 +32,86 @@ SDL_Window* CreateRoundedWindow(const char *title, int x, int y, int w, int h, U
     return window;
 }
 
-void CreateClickableElement(SDL_Renderer* renderer, int x, int y, int w, int h, const char* text, SDL_Color textColor, const char* imagePath, void (*callback)(void)) {
-    SDL_Rect rect = {x, y, w, h};
 
+void CreateClickableElement(SDL_Renderer* renderer, int x, int y, int* w, int* h, const char* text, SDL_Color textColor, const char* imagePath, EventCallback callback, int fontSize) {
     // Load background image if provided
-    SDL_Texture *texture = NULL;
+    InitLogFile("logs.txt");
+    SDL_Surface* imageSurface = NULL;
+    SDL_Texture* texture = NULL;
+    int imageW = 0, imageH = 0;
     if (imagePath) {
-        SDL_Surface *surface = IMG_Load(imagePath);
-        if (!surface) {
+        imageSurface = IMG_Load(imagePath);
+        if (!imageSurface) {
             printf("Image Load Error: %s\n", IMG_GetError());
             return;
         }
-        texture = SDL_CreateTextureFromSurface(renderer, surface);
-        SDL_FreeSurface(surface);
+        imageW = imageSurface->w;
+        imageH = imageSurface->h;
     }
 
-    // Render the background texture or a filled rectangle
-    if (texture) {
-        SDL_RenderCopy(renderer, texture, NULL, &rect);
-        SDL_DestroyTexture(texture);
-    } else {
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // Default color (red)
-        SDL_RenderFillRect(renderer, &rect);
-    }
+    // If width or height is not set, use the size of the image
+    if (*w == 0 && imageSurface) *w = imageW;
+    if (*h == 0 && imageSurface) *h = imageH;
 
     // Render the text if provided
+    SDL_Surface* textSurface = NULL;
     if (text) {
-        TTF_Font* font = TTF_OpenFont("medias/font/Minecraftory.ttf", 24);
+        TTF_Font* font = TTF_OpenFont("medias/font/Minercraftory.ttf", fontSize);
         if (!font) {
             printf("TTF_OpenFont: %s\n", TTF_GetError());
+            SDL_FreeSurface(imageSurface);
             return;
         }
-        SDL_Surface* textSurface = TTF_RenderText_Blended(font, text, textColor);
+        textSurface = TTF_RenderText_Blended(font, text, textColor);
         if (!textSurface) {
             printf("TTF_RenderText_Blended: %s\n", TTF_GetError());
             TTF_CloseFont(font);
+            SDL_FreeSurface(imageSurface);
             return;
         }
-        SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
-        if (!textTexture) {
-            printf("CreateTextureFromSurface: %s\n", SDL_GetError());
-            SDL_FreeSurface(textSurface);
-            TTF_CloseFont(font);
-            return;
-        }
-
-        // Center the text within the element
-        int textW = 0, textH = 0;
-        TTF_SizeText(font, text, &textW, &textH);
-        SDL_Rect textRect = {x + (w - textW) / 2, y + (h - textH) / 2, textW, textH};
-        SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
-
-        SDL_DestroyTexture(textTexture);
-        SDL_FreeSurface(textSurface);
         TTF_CloseFont(font);
-    }
 
-    // Handle events and call the callback if the element is clicked
-    SDL_Event e;
-    while (SDL_PollEvent(&e)) {
-        if (e.type == SDL_MOUSEBUTTONDOWN) {
-            int mouseX = e.button.x;
-            int mouseY = e.button.y;
-            if (mouseX >= x && mouseY >= y && mouseX <= x + w && mouseY <= y + h) {
-                callback();
-            }
+        // Get the dimensions of the text
+        int textW = textSurface->w;
+        int textH = textSurface->h;
+
+        // Center the text within the image
+        SDL_Rect textRect = {(*w - textW) /2.3, (*h - textH)/2.5, textW, textH};
+        if (imageSurface) {
+            SDL_BlitSurface(textSurface, NULL, imageSurface, &textRect);
         }
     }
+
+    // Convert the combined surface to texture
+    if (imageSurface) {
+        texture = SDL_CreateTextureFromSurface(renderer, imageSurface);
+        SDL_FreeSurface(imageSurface);
+    }
+
+    if (textSurface) {
+        SDL_FreeSurface(textSurface);
+    }
+
+    SDL_Rect rect = {x, y, *w, *h};
+
+    // Render the combined texture
+    if (texture) {
+        SDL_RenderCopy(renderer, texture, NULL, &rect);
+        SDL_DestroyTexture(texture);
+    }
+
+    // Créer et enregistrer la zone cliquable
+    ClickableArea area = {
+        .x = rect.x,
+        .y = rect.y,
+        .width = rect.w,
+        .height = rect.h,
+        .onClick = callback,
+        .onHover = NULL,
+        .onDragStart = NULL,
+        .onDragEnd = NULL,
+        .onDragMove = NULL
+    };
+
+    RegisterClickableArea(area);
 }

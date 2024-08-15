@@ -10,7 +10,6 @@
 // Define window dimensions
 const int WINDOW_WIDTH = 600;
 const int WINDOW_HEIGHT = 600;
-
 int main(int argc, char *argv[]) {
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
