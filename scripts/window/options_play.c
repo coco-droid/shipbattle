@@ -6,7 +6,8 @@
 #include"../../headers/window/options_play.h" 
 #include "../../headers/events.h"
 #include "../../headers/log.h"
-
+#include "../../headers/window/place_boat.h"
+#include "../../headers/graphics.h"
 void BeforeCallback2(SDL_Event *event) {
     InitLogFile("logs.txt");
     if (event->type == SDL_MOUSEBUTTONDOWN) {
@@ -15,7 +16,14 @@ void BeforeCallback2(SDL_Event *event) {
         ClearEvents();
     }
 }
-
+void ComputerCallback(SDL_Event *event)
+{
+    InitLogFile("logs.txt");
+    if (event->type == SDL_MOUSEBUTTONDOWN) {
+        LogMessage("Computer clicked!\n");
+        ShowPlaceBoat(first_window,first_renderer);
+    }
+}
 void AfterCallback2(SDL_Event *event) {
     InitLogFile("logs.txt");
     if (event->type == SDL_MOUSEBUTTONDOWN) {
@@ -54,12 +62,12 @@ void ShowOption(SDL_Window* Window,SDL_Renderer* Renderer)
     SDL_RenderCopy(Renderer, backgroundTexture, NULL, NULL);
     int width3 = 30;
     int height3 = 30;
-    int width2 = 160;
-    int height2 = 52;
+    int width2 = 0;
+    int height2 = 0;
     SDL_Color textColor = {255, 255, 255, 255}; // White color
     CreateClickableElement(Renderer, 558, 11, &width3, &height3, NULL, textColor, "medias/images/btn-close.png", CloseCallback2, 12);
     CreateClickableElement(Renderer, 12, 11, &width3, &height3, NULL, textColor, "medias/images/left-arrow.png", BeforeCallback2, 12);
-    CreateClickableElement(Renderer,220, 158, &width2, &height2,"Computer", textColor, "medias/images/square-btn.png", BeforeCallback2, 12);
+    CreateClickableElement(Renderer,220, 158, &width2, &height2,"Computer", textColor, "medias/images/square-btn.png", ComputerCallback, 12);
     CreateClickableElement(Renderer,220, 220, &width2, &height2,"Local user", textColor, "medias/images/square-btn.png", BeforeCallback2, 12);
     CreateClickableElement(Renderer,220, 285, &width2, &height2,"Online user", textColor, "medias/images/square-btn.png", BeforeCallback2, 12);
     SDL_RenderPresent(Renderer);

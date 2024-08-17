@@ -7,7 +7,7 @@
 #include "headers/events.h"
 #include "headers/log.h"
 #include "headers/window/dialog_1.h"
-#include "headers/window/options_play.h"
+#include "headers/window/place_boat.h"
 // Define window dimensions
 const int WINDOW_WIDTH = 600;
 const int WINDOW_HEIGHT = 600;
@@ -68,9 +68,10 @@ int main(int argc, char *argv[]) {
     // Declare and initialize the alive flag
     
     // Show the startup menu
-    //ShowStartupMenu(first_window,first_renderer);
+    ShowStartupMenu(first_window,first_renderer);
     //Dialog_1(first_window,first_renderer);
-    ShowOption(first_window,first_renderer);
+    //ShowOption(first_window,first_renderer);
+    //ShowPlaceBoat(first_window,first_renderer);
     while (*alive) {
             ProcessEvents(first_window,first_renderer);
     }

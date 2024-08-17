@@ -6,6 +6,8 @@ struct ships {
    int n_cases;
    int health;
    int damage;
+   //the different damier cells content the boat 
+   char cases[8][8];
 };
 //use the struct to define destroyer ,torpedo_boat,submarine,aircraft carrier,cruiser 
 struct ships destroyer = { 10, 2, 2, 1 };
