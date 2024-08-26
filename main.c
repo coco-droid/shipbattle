@@ -8,6 +8,7 @@
 #include "headers/log.h"
 #include "headers/window/dialog_1.h"
 #include "headers/window/place_boat.h"
+#include "headers/window/named.h"    
 // Define window dimensions
 const int WINDOW_WIDTH = 600;
 const int WINDOW_HEIGHT = 600;
@@ -72,6 +73,7 @@ int main(int argc, char *argv[]) {
     //Dialog_1(first_window,first_renderer);
     //ShowOption(first_window,first_renderer);
     //ShowPlaceBoat(first_window,first_renderer);
+   //ShowPlayerNameInput(first_window,first_renderer);
     while (*alive) {
             ProcessEvents(first_window,first_renderer);
     }

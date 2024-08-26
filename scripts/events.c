@@ -1,19 +1,17 @@
 #include "../headers/events.h"
 #include "../headers/log.h"
 #include <stdio.h>
-#include <stdbool.h>
-#define MAX_CALLBACKS 50
+#include <string.h>
+#include <SDL2/SDL.h>
 
-// Tableau pour stocker les zones cliquables
 static ClickableArea clickableAreas[MAX_CALLBACKS];
+static TextInput *textInputArea = NULL;
 static int numAreas = 0;
-
-// Variables pour suivre l'état de la souris
 static bool isDragging = false;
 static ClickableArea* currentDragArea = NULL;
-int aliveValue = 1; // Valeur initiale
+int aliveValue = 1;
 int *alive = &aliveValue;
-// Initialise le module d'événements
+
 void InitEvents(void) {
     for (int i = 0; i < MAX_CALLBACKS; i++) {
         clickableAreas[i].onClick = NULL;
@@ -22,26 +20,71 @@ void InitEvents(void) {
         clickableAreas[i].onDragMove = NULL;
         clickableAreas[i].onDragEnd = NULL;
     }
+    textInputArea = NULL;
     numAreas = 0;
 }
 
-// Enregistre une zone cliquable avec ses callbacks associés
 void RegisterClickableArea(ClickableArea area) {
     if (numAreas < MAX_CALLBACKS) {
         clickableAreas[numAreas] = area;
         numAreas++;
     } else {
-        fprintf(stderr, "Pas d'espace pour enregistrer une nouvelle zone cliquable\n");
+        fprintf(stderr, "No space left to register a new clickable area\n");
     }
 }
 
-// Fonction pour vérifier si une position (x, y) est dans une zone cliquable
+void RegisterTextInputArea(TextInput *inputArea) {
+    textInputArea = inputArea;
+}
+
 bool IsInArea(ClickableArea* area, int x, int y) {
     return (x >= area->x && x <= area->x + area->width &&
             y >= area->y && y <= area->y + area->height);
 }
 
-// Gère les événements SDL, incluant la détection de clics, survols et drag-and-drop
+void HandleTextInput(SDL_Event *event) {
+    if (textInputArea != NULL) {
+        if (event->type == SDL_TEXTINPUT) {
+            if (textInputArea->isDefaultText) {
+                strcpy(textInputArea->text, "");
+                textInputArea->isDefaultText = false;
+            }
+            if (strlen(textInputArea->text) < 20) {
+                strcat(textInputArea->text, event->text.text);
+            }
+        } else if (event->type == SDL_KEYDOWN) {
+            if (event->key.keysym.sym == SDLK_BACKSPACE && strlen(textInputArea->text) > 0) {
+                textInputArea->text[strlen(textInputArea->text) - 1] = '\0';
+                if (strlen(textInputArea->text) == 0) {
+                    strcpy(textInputArea->text, "Your Name");
+                    textInputArea->isDefaultText = true;
+                }
+            } else if (event->key.keysym.sym == SDLK_RETURN) {
+                if (textInputArea->onSubmit) {
+                    textInputArea->onSubmit(textInputArea->text);
+                }
+            }
+        }
+    }
+}
+
+void RenderTextInputWithBackground(SDL_Renderer* renderer, SDL_Texture* backgroundTexture) {
+    if (textInputArea != NULL) {
+        // Render the background image
+        SDL_Rect destRect = { textInputArea->x, textInputArea->y, textInputArea->width, textInputArea->height };
+        SDL_RenderCopy(renderer, backgroundTexture, NULL, &destRect);
+
+        // Render the text on top of the background
+        SDL_Surface* textSurface = TTF_RenderText_Blended(textInputArea->font, textInputArea->text, textInputArea->textColor);
+        SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+        SDL_FreeSurface(textSurface);
+
+        SDL_Rect textRect = { textInputArea->x + 10, textInputArea->y + 10, textSurface->w, textSurface->h };
+        SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+        SDL_DestroyTexture(textTexture);
+    }
+}
+
 void ProcessEvents(SDL_Window* window, SDL_Renderer* renderer) {
     InitLogFile("logs.txt");
     SDL_Event e;
@@ -56,18 +99,14 @@ void ProcessEvents(SDL_Window* window, SDL_Renderer* renderer) {
                 quit = 1;
             }
 
-            // Gestion des événements de la souris
             if (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP || e.type == SDL_MOUSEMOTION) {
                 for (int i = 0; i < numAreas; i++) {
                     ClickableArea* area = &clickableAreas[i];
 
-                    // Clic dans la zone
                     if (e.type == SDL_MOUSEBUTTONDOWN && IsInArea(area, e.button.x, e.button.y)) {
                         if (area->onClick) {
-                            LogMessage("Clic détecté !");
                             area->onClick(&e);
                         }
-                        // Commence le drag
                         if (area->onDragStart) {
                             isDragging = true;
                             currentDragArea = area;
@@ -75,7 +114,6 @@ void ProcessEvents(SDL_Window* window, SDL_Renderer* renderer) {
                         }
                     }
 
-                    // Relâchement du bouton de la souris
                     if (e.type == SDL_MOUSEBUTTONUP && isDragging) {
                         if (currentDragArea && currentDragArea->onDragEnd) {
                             currentDragArea->onDragEnd(&e);
@@ -84,7 +122,6 @@ void ProcessEvents(SDL_Window* window, SDL_Renderer* renderer) {
                         currentDragArea = NULL;
                     }
 
-                    // Mouvement de la souris dans la zone (survol ou glisser)
                     if (e.type == SDL_MOUSEMOTION) {
                         if (IsInArea(area, e.motion.x, e.motion.y)) {
                             if (area->onHover) {
@@ -97,9 +134,19 @@ void ProcessEvents(SDL_Window* window, SDL_Renderer* renderer) {
                     }
                 }
             }
+
+            HandleTextInput(&e);
         }
+
+        // Render the text input area with the background image
+        if (textInputArea != NULL) {
+            RenderTextInputWithBackground(renderer, textInputArea->backgroundTexture);
+        }
+
+        SDL_RenderPresent(renderer);
     }
 }
+
 void ClearEvents(void) {
     for (int i = 0; i < MAX_CALLBACKS; i++) {
         clickableAreas[i].onClick = NULL;
@@ -108,5 +155,6 @@ void ClearEvents(void) {
         clickableAreas[i].onDragMove = NULL;
         clickableAreas[i].onDragEnd = NULL;
     }
+    textInputArea = NULL;
     numAreas = 0;
 }

@@ -6,17 +6,15 @@
 #include "../../headers/window/dialog_1.h"
 #include <stdio.h>
 #include "../../headers/log.h"
-
-
-
-// Définition du pointeur 'alive'
+#include "../../headers/window/named.h"
 
 void Button1Callback(SDL_Event *event) {
     InitLogFile("logs.txt");
     if (event->type == SDL_MOUSEBUTTONDOWN) {
         LogMessage("Button 1 clicked!\n");
         ClearEvents();
-        Dialog_1(first_window,first_renderer);
+        //Dialog_1(first_window,first_renderer);
+        ShowPlayerNameInput(first_window,first_renderer);
     }
 }
 

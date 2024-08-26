@@ -7,8 +7,6 @@ struct player {
     struct fleet fleet;
     char type[20];
     int id;
+    char ip;
 };
-//use the struct to define destroyer ,torpedo_boat,submarine,aircraft carrier,cruiser 
-struct fleet american = { };
-struct fleet russian = { };
 #endif

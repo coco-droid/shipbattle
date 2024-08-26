@@ -1,19 +1,19 @@
 #ifndef SHIPS_H
 #define SHIPS_H
 
-struct ships {
-   int ammunitions;
-   int n_cases;
-   int health;
-   int damage;
-   //the different damier cells content the boat 
-   char cases[8][8];
-};
-//use the struct to define destroyer ,torpedo_boat,submarine,aircraft carrier,cruiser 
-struct ships destroyer = { 10, 2, 2, 1 };
-struct ships torpedo_boat = { 20, 3, 3, 2 };
-struct ships submarine = { 20, 4, 4, 3 };   
-struct ships aircraft_carrier = { 35, 5, 5, 4 };
-struct ships cruiser = { 0, 6, 6, 5 };
+#define MAX_NAME_LENGTH 20  // Définir une taille maximale pour le nom
+
+typedef struct ships {
+    char name[MAX_NAME_LENGTH];  // Nom du navire
+    int ammunitions;
+    int n_cases;
+    int health;
+    int damage;
+    // Le damier pour représenter les cellules du navire
+    char cases[8][8];
+} Ships;
+
+// Fonctions pour manipuler les navires
+void initialize_ship(Ships* s, const char* name, int ammunitions, int n_cases, int health, int damage);
 
 #endif

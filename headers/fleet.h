@@ -1,17 +1,20 @@
 #ifndef FLEET_H
 #define FLEET_H
+
 #include "./ships.h"
-struct fleet {
-  //name of fleet ,the 5 ships on the fleet ,the id of the player have the fleet 
-    char name[20];
-    struct ships destroyer;
-    struct ships torpedo_boat;
-    struct ships submarine;
-    struct ships aircraft_carrier;
-    struct ships cruiser;
-    int id;
-};
-//use the struct to define destroyer ,torpedo_boat,submarine,aircraft carrier,cruiser 
-struct fleet american = { };
-struct fleet russian = { };
+
+typedef struct fleet {
+    char name[20];  // Nom de la flotte
+    Ships destroyer;
+    Ships torpedo_boat;
+    Ships submarine;
+    Ships aircraft_carrier;
+    Ships cruiser;
+    int id;  // Identifiant de la flotte
+} Fleet;
+
+// Fonctions pour initialiser une flotte
+void initialize_american_fleet(Fleet* f);
+void initialize_russian_fleet(Fleet* f);
+
 #endif
