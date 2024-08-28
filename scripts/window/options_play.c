@@ -73,4 +73,9 @@ void ShowOption(SDL_Window* Window,SDL_Renderer* Renderer)
     CreateClickableElement(Renderer,220, 220, &width2, &height2,"Local user", textColor, "medias/images/square-btn.png", BeforeCallback2, 12);
     CreateClickableElement(Renderer,220, 285, &width2, &height2,"Online user", textColor, "medias/images/square-btn.png", BeforeCallback2, 12);
     SDL_RenderPresent(Renderer);
+        int quit = 0;
+    while (!quit) {
+            ProcessEvents(Window,Renderer);     
+    }
+    
 }

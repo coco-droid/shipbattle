@@ -10,4 +10,6 @@ struct player {
     char ip;
 };
 void initialize_player(struct player* p, const char* name, struct fleet f, const char* type, int id, char ip);
+extern Player player_one;
+extern Player player_two;
 #endif

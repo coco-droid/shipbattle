@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include"../../headers/window/options_play.h" 
+#include"../../headers/window/named.h"
 #include "../../headers/events.h"
 #include "../../headers/log.h"
 #include "../../headers/window/place_boat.h"
@@ -21,6 +22,9 @@ void USA_fleet(SDL_Event *event)
     InitLogFile("logs.txt");
     if (event->type == SDL_MOUSEBUTTONDOWN) {
         LogMessage("Computer clicked!\n");
+        Fleet player_one_fleet;
+        initialize_american_fleet(&player_one_fleet);
+        initialize_player(&player_one,playerName,player_one_fleet,"offline",0,"");
         ShowPlaceBoat(first_window,first_renderer);
     }
 }
@@ -70,4 +74,8 @@ void Choose_fleet(SDL_Window* Window,SDL_Renderer* Renderer)
     CreateClickableElement(Renderer,220, 158, &width2, &height2,"USA", textColor, "medias/images/square-btn.png",USA_fleet, 12);
     CreateClickableElement(Renderer,220, 220, &width2, &height2,"Russia", textColor, "medias/images/square-btn.png",Russian_fleet, 12);
     SDL_RenderPresent(Renderer);
+    int quit=0;
+    while (!quit) {
+            ProcessEvents(Window,Renderer);     
+    }
 }
