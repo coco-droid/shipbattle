@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <string.h>
 #include"../../headers/window/options_play.h" 
+#include "../../headers/window/choose_fleet.h"
+#include "../../headers/player.h"
+#include "../../headers/fleet.h"
 #include"../../headers/window/named.h"
 #include "../../headers/events.h"
 #include "../../headers/log.h"
