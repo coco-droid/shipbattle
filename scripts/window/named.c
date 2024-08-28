@@ -3,18 +3,22 @@
 #include "../../headers/graphics.h"
 #include "../../headers/window/named.h"
 #include "../../headers/window/startup.h"
+#include "../../headers/window/options_play.h"
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 #include <stdio.h>
 #include <string.h>
-
+#include "../../headers/window/dialog_1.h"
 #define MAX_NAME_LENGTH 20
 
-static char playerName[MAX_NAME_LENGTH] = "Your Name"; 
+char playerName[MAX_NAME_LENGTH] = "Your Name"; 
 
 void SubmitNameCallback(const char *name) {
     InitLogFile("logs.txt");
     LogMessage("name valued");
+    strncpy(playerName, name, MAX_NAME_LENGTH - 1);
+    ClearEvents();
+    ShowOption(first_window,first_renderer);
 }
 
 void BeforeLeft(SDL_Event *event) {

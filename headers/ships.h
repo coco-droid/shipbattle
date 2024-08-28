@@ -1,7 +1,7 @@
 #ifndef SHIPS_H
 #define SHIPS_H
 
-#define MAX_NAME_LENGTH 20  // Définir une taille maximale pour le nom
+#define MAX_NAME_LENGTH 200  // Définir une taille maximale pour le nom
 
 typedef struct ships {
     char name[MAX_NAME_LENGTH];  // Nom du navire
@@ -9,11 +9,12 @@ typedef struct ships {
     int n_cases;
     int health;
     int damage;
+    char image[200];
     // Le damier pour représenter les cellules du navire
     char cases[8][8];
 } Ships;
 
 // Fonctions pour manipuler les navires
-void initialize_ship(Ships* s, const char* name, int ammunitions, int n_cases, int health, int damage);
+void initialize_ship(Ships* s, const char* name,char* image, int ammunitions, int n_cases, int health, int damage);
 
 #endif
