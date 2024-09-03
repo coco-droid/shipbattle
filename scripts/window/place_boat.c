@@ -33,12 +33,14 @@ void DrawSelectionRect(SDL_Renderer *renderer, int x, int y, int width, int heig
 }
 
 // Function to draw a ship
-void DrawShips(Grid *grid, SDL_Texture *shipTexture, int shipLength, int shipX, int shipY, bool horizontal, bool isDragging) {
+void DrawShips(Grid *grid, Ships *ship, bool isDragging) {
+    SDL_Texture *shipTexture = ship->horizontal ? ship->texture_h : ship->texture_v;
+
     SDL_Rect boatRect = {
-        grid->xPos + grid->cellSize * shipX,
-        grid->yPos + grid->cellSize * shipY,
-        horizontal ? grid->cellSize * shipLength : grid->cellSize,
-        horizontal ? grid->cellSize : grid->cellSize * shipLength
+        grid->xPos + grid->cellSize * ship->ShipX,
+        grid->yPos + grid->cellSize * ship->ShipY,
+        ship->horizontal ? grid->cellSize * ship->n_cases : grid->cellSize,
+        ship->horizontal ? grid->cellSize : grid->cellSize * ship->n_cases
     };
 
     // Draw the colored rectangle if dragging
@@ -172,7 +174,8 @@ void RandomizeShipPlacement(Grid *grid, Ships *ship) {
 }
 
 // Function to draw a fleet on the grid
-void DrawFleet(Grid *grid, Fleet *fleet, SDL_Texture *shipTextures[]) {
+void DrawFleet(Grid *grid, Fleet *fleet) {
+    printf("Drawing fleet");
     Ships *ships[] = {
         &fleet->destroyer,
         &fleet->torpedo_boat,
@@ -184,10 +187,11 @@ void DrawFleet(Grid *grid, Fleet *fleet, SDL_Texture *shipTextures[]) {
     for (int i = 0; i < 5; i++) {
         Ships *ship = ships[i];
         if (ship->name[0] != '\0') {  // Check if the ship is defined
-            DrawShips(grid, shipTextures[i], ship->n_cases, ship->ShipX, ship->ShipY, ship->horizontal, false);
+            DrawShips(grid, ship, ship->isDragging);
         }
     }
 }
+
 
 void ShowPlaceBoat(SDL_Window* window, SDL_Renderer* renderer) {
     SDL_Surface *backgroundSurface = IMG_Load("medias/images/metalic_panel.png");
@@ -232,27 +236,14 @@ void ShowPlaceBoat(SDL_Window* window, SDL_Renderer* renderer) {
         SDL_Quit();
         return;
     }
-
-    // Load ship textures
-    SDL_Texture *shipTextures[5] = {
-        loadTexture("medias/images/ships/cruiser-180.png", renderer),
-        loadTexture("medias/images/ships/cruiser-180.png", renderer),
-        loadTexture("medias/images/ships/cruiser-180.png", renderer),
-        loadTexture("medias/images/ships/cruiser-180.png", renderer),
-        loadTexture("medias/images/ships/cruiser-180.png", renderer)
-    };
-
     // Initialize the fleet
+    printf("start placing");
     Fleet fleet;
+    fleet=player_one.fleet;
     // Initialize ships here
-    fleet.destroyer.name[0] = 'D'; fleet.destroyer.n_cases = 2;
-    fleet.torpedo_boat.name[0] = 'T'; fleet.torpedo_boat.n_cases = 3;
-    fleet.submarine.name[0] = 'S'; fleet.submarine.n_cases = 4;
-    fleet.aircraft_carrier.name[0] = 'A'; fleet.aircraft_carrier.n_cases = 5;
-    fleet.cruiser.name[0] = 'C'; fleet.cruiser.n_cases = 3;
-
     srand(time(NULL));
-    // Randomly place ships
+    // Randomly place 
+    printf("randomize");
     RandomizeShipPlacement(&grid, &fleet.destroyer);
     RandomizeShipPlacement(&grid, &fleet.torpedo_boat);
     RandomizeShipPlacement(&grid, &fleet.submarine);
@@ -319,14 +310,11 @@ void ShowPlaceBoat(SDL_Window* window, SDL_Renderer* renderer) {
             }
         }
         DrawGrid(&grid);
-        DrawFleet(&grid, &fleet, shipTextures);
+        DrawFleet(&grid, &fleet);
         SDL_RenderPresent(renderer);
     }
 
     SDL_DestroyTexture(grid.backgroundImage);
-    for (int i = 0; i < 5; i++) {
-        SDL_DestroyTexture(shipTextures[i]);
-    }
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();

@@ -12,6 +12,7 @@
 #include "../../headers/log.h"
 #include "../../headers/window/place_boat.h"
 #include "../../headers/graphics.h"
+#include <stdio.h>
 void BeforeChooseFleet(SDL_Event *event) {
     InitLogFile("logs.txt");
     if (event->type == SDL_MOUSEBUTTONDOWN) {
@@ -26,8 +27,10 @@ void USA_fleet(SDL_Event *event)
     if (event->type == SDL_MOUSEBUTTONDOWN) {
         LogMessage("Computer clicked!\n");
         Fleet player_one_fleet;
+        printf("will initialize the fleet!");
         initialize_american_fleet(&player_one_fleet);
         initialize_player(&player_one,playerName,player_one_fleet,"offline",0,"");
+        printf("fleet initialized!!");
         ShowPlaceBoat(first_window,first_renderer);
     }
 }
