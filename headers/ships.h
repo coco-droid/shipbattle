@@ -13,6 +13,7 @@ typedef struct ships {
     int health;
     int ShipX;
     int ShipY;
+    int ship_id;
     bool horizontal;
     bool isDragging;
     int damage;
@@ -23,6 +24,6 @@ typedef struct ships {
 } Ships;
 
 // Fonctions pour manipuler les navires
-void initialize_ship(Ships* s, const char* name, const char* image_h_path, const char* image_v_path, int ammunitions, int n_cases, int health, int damage, SDL_Renderer* renderer);
+void initialize_ship(Ships* s, const char* name, const char* image_h_path, const char* image_v_path, int ammunitions, int n_cases, int health, int damage, SDL_Renderer* renderer ,int ship_id);
 void cleanup_ship(Ships* s);  // Fonction pour libérer les ressources
 #endif

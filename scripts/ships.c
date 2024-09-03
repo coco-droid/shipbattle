@@ -2,7 +2,7 @@
 #include <string.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL.h>
-void initialize_ship(Ships* s, const char* name, const char* image_h_path, const char* image_v_path, int ammunitions, int n_cases, int health, int damage, SDL_Renderer* renderer) {
+void initialize_ship(Ships* s, const char* name, const char* image_h_path, const char* image_v_path, int ammunitions, int n_cases, int health, int damage, SDL_Renderer* renderer,int ship_id) {
     // Copier le nom du navire
     strncpy(s->name, name, MAX_NAME_LENGTH - 1);
     s->name[MAX_NAME_LENGTH - 1] = '\0';  // Assurer la terminaison de chaîne
@@ -28,6 +28,7 @@ void initialize_ship(Ships* s, const char* name, const char* image_h_path, const
     s->n_cases = n_cases;
     s->health = health;
     s->damage = damage;
+    s->ship_id = ship_id;
     
     // Initialiser les cases si nécessaire
     memset(s->cases, 0, sizeof(s->cases));

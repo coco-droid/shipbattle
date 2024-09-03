@@ -36,6 +36,21 @@ void DrawSelectionRect(SDL_Renderer *renderer, int x, int y, int width, int heig
     }
 }
 
+void PlaceShipInGrid(Ships *ship, int grid[10][10]) {
+    int x = ship->ShipX;
+    int y = ship->ShipY;
+    int length = ship->n_cases;
+    if (ship->horizontal) {
+        for (int i = 0; i < length; i++) {
+            grid[y][x + i] = ship->ship_id;  // Remplit les cases horizontalement
+        }
+    } else {
+        for (int i = 0; i < length; i++) {
+            grid[y + i][x] = ship->ship_id;  // Remplit les cases verticalement
+        }
+    }
+}
+
 // Function to draw a ship
 void DrawShips(Grid *grid, Ships *ship, bool isDragging) {
     SDL_Texture *shipTexture = ship->horizontal ? ship->texture_h : ship->texture_v;
@@ -161,6 +176,7 @@ void UpdateShipPosition(Grid *grid, Ships *ship, int mouseX, int mouseY, Fleet *
         ship->ShipX = oldShipX;
         ship->ShipY = oldShipY;
     }
+    PlaceShipInGrid(ship,player_one_grid);
 }
 
 // Function to randomly place a ship on the grid
@@ -250,6 +266,11 @@ void ShowPlaceBoat(SDL_Window* window, SDL_Renderer* renderer) {
     RandomizeShipPlacement(&grid, &fleet.submarine);
     RandomizeShipPlacement(&grid, &fleet.aircraft_carrier);
     RandomizeShipPlacement(&grid, &fleet.cruiser);
+    PlaceShipInGrid(&fleet.torpedo_boat,player_one_grid);
+    PlaceShipInGrid(&fleet.destroyer,player_one_grid);
+    PlaceShipInGrid(&fleet.submarine,player_one_grid);
+    PlaceShipInGrid(&fleet.aircraft_carrier,player_one_grid);
+    PlaceShipInGrid(&fleet.cruiser,player_one_grid);
     bool running = true;
     SDL_Event event;
     bool dragging = false;
