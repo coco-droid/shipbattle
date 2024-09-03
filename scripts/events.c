@@ -85,6 +85,25 @@ void RenderTextInputWithBackground(SDL_Renderer* renderer, SDL_Texture* backgrou
     }
 }
 
+void TriggerClickCallbacks(int x, int y) {
+    for (int i = 0; i < numAreas; i++) {
+        ClickableArea* area = &clickableAreas[i];
+
+        if (IsInArea(area, x, y)) {
+            if (area->onClick) {
+                // Créer un événement SDL pour passer au callback
+                SDL_Event clickEvent;
+                clickEvent.type = SDL_MOUSEBUTTONDOWN;
+                clickEvent.button.x = x;
+                clickEvent.button.y = y;
+
+                // Appeler le callback de clic
+                area->onClick(&clickEvent);
+            }
+        }
+    }
+}
+
 void ProcessEvents(SDL_Window* window, SDL_Renderer* renderer) {
     InitLogFile("logs.txt");
     SDL_Event e;
@@ -158,3 +177,4 @@ void ClearEvents(void) {
     textInputArea = NULL;
     numAreas = 0;
 }
+

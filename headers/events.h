@@ -40,6 +40,7 @@ typedef struct {
 void InitEvents(void);
 void RegisterClickableArea(ClickableArea area);
 void RegisterTextInputArea(TextInput *inputArea);
+void TriggerClickCallbacks(int x, int y);
 void ProcessEvents(SDL_Window* window, SDL_Renderer* renderer);
 void ClearEvents(void);
 bool IsInArea(ClickableArea* area, int x, int y);

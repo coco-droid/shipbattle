@@ -23,6 +23,10 @@ SDL_Texture* loadTexture(const char *file, SDL_Renderer *renderer) {
     return texture;
 }
 
+void PlayGame() {
+    printf("The game is ready to play");
+    
+}
 // Function to draw a colored rectangle (for selection indication)
 void DrawSelectionRect(SDL_Renderer *renderer, int x, int y, int width, int height, bool isDragging) {
     SDL_Rect rect = {x, y, width, height};
@@ -175,7 +179,6 @@ void RandomizeShipPlacement(Grid *grid, Ships *ship) {
 
 // Function to draw a fleet on the grid
 void DrawFleet(Grid *grid, Fleet *fleet) {
-    printf("Drawing fleet");
     Ships *ships[] = {
         &fleet->destroyer,
         &fleet->torpedo_boat,
@@ -237,25 +240,25 @@ void ShowPlaceBoat(SDL_Window* window, SDL_Renderer* renderer) {
         return;
     }
     // Initialize the fleet
-    printf("start placing");
     Fleet fleet;
     fleet=player_one.fleet;
     // Initialize ships here
     srand(time(NULL));
     // Randomly place 
-    printf("randomize");
     RandomizeShipPlacement(&grid, &fleet.destroyer);
     RandomizeShipPlacement(&grid, &fleet.torpedo_boat);
     RandomizeShipPlacement(&grid, &fleet.submarine);
     RandomizeShipPlacement(&grid, &fleet.aircraft_carrier);
     RandomizeShipPlacement(&grid, &fleet.cruiser);
-
     bool running = true;
     SDL_Event event;
     bool dragging = false;
     Ships *currentShip = NULL;
     int offsetX = 0, offsetY = 0;
-
+    int width = 0; 
+    int height = 0; 
+    SDL_Color textColor = {255, 255, 255, 255};
+    CreateClickableElement(renderer,214,520,&width,&height, "Play", textColor,"medias/images/btn-play.png",PlayGame,12);
     while (running) {
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
@@ -266,7 +269,10 @@ void ShowPlaceBoat(SDL_Window* window, SDL_Renderer* renderer) {
                     if (event.button.button == SDL_BUTTON_LEFT) {
                         int mouseX = event.button.x;
                         int mouseY = event.button.y;
-
+                
+                   TriggerClickCallbacks(mouseX,mouseY);
+                
+             
                         Ships *ships[] = {
                             &fleet.destroyer,
                             &fleet.torpedo_boat,
@@ -293,6 +299,7 @@ void ShowPlaceBoat(SDL_Window* window, SDL_Renderer* renderer) {
                             }
                         }
                     }
+                    
                     break;
                 case SDL_MOUSEBUTTONUP:
                     if (event.button.button == SDL_BUTTON_LEFT) {
