@@ -10,10 +10,11 @@
 #include "../../headers/graphics.h"
 #include "../../headers/computer_mode.h"
 void BeforeCallback2(SDL_Event *event) {
+    printf("launched!!");
     InitLogFile("logs.txt");
     if (event->type == SDL_MOUSEBUTTONDOWN) {
         LogMessage("Button 1 clicked!\n");
-        //ShowStartupMenu(first_window,first_renderer);
+        ShowStartupMenu(first_window,first_renderer);
         ClearEvents();
     }
 }
@@ -33,6 +34,7 @@ void AfterCallback2(SDL_Event *event) {
     }
 }
 void CloseCallback2(SDL_Event *event) {
+    printf("fermer la fenetre");
     InitLogFile("logs.txt");
     if (event->type == SDL_MOUSEBUTTONDOWN) {
        *alive=0;
@@ -74,8 +76,8 @@ void ShowOption(SDL_Window* Window,SDL_Renderer* Renderer)
     CreateClickableElement(Renderer,220, 285, &width2, &height2,"Online user", textColor, "medias/images/square-btn.png", BeforeCallback2, 12);
     SDL_RenderPresent(Renderer);
         int quit = 0;
-    while (!quit) {
+  /*  while (!quit) {
             ProcessEvents(Window,Renderer);     
-    }
+    }*/
     
 }

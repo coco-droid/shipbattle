@@ -15,6 +15,7 @@ char playerName[MAX_NAME_LENGTH] = "Your Name";
 
 void SubmitNameCallback(const char *name) {
     InitLogFile("logs.txt");
+    printf("the name %d",name);
     LogMessage("name valued");
     strncpy(playerName, name, MAX_NAME_LENGTH - 1);
     ClearEvents();

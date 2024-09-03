@@ -1,1 +1,4 @@
-gcc first.c -o main -I"C:\Users\t4u\Documents\my c program\game\shipbattle\include\SDL2" -L"C:\Users\t4u\Documents\my c program\game\shipbattle\lib" -w -Wl,-subsystem,windows -lmingw32 -lSDL2main -lSDL2
+@echo off
+if exist test.exe del test.exe
+gcc -o test ./scripts/*.c  ./scripts/window/*.c   test.c  -w -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_image -lgdi32 -lSDL2_gfx -mconsole 2> logs.txt
+test.exe

@@ -12,13 +12,20 @@ typedef void (*EventCallback)(int);
 extern int* alive;
 
 typedef struct {
-    int x, y, width, height;
+    int x;
+    int y;
+    int width;
+    int height;
     void (*onClick)(SDL_Event *event);
     void (*onHover)(SDL_Event *event);
     void (*onDragStart)(SDL_Event *event);
     void (*onDragMove)(SDL_Event *event);
     void (*onDragEnd)(SDL_Event *event);
+    bool isDragging;
+    int dragOffsetX;
+    int dragOffsetY;
 } ClickableArea;
+
 
 typedef struct {
     int x, y, width, height;

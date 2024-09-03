@@ -4,9 +4,6 @@
 #include <SDL2/SDL_ttf.h>
 #include <stdio.h>
 #include <stdbool.h>
-
-
-
 void DrawGrid(Grid* grid) {
     int cellSize = grid->cellSize;
     int gridWidth = grid->gridWidth * cellSize;
@@ -38,11 +35,11 @@ void DrawGrid(Grid* grid) {
     // Load font for labeling
     TTF_Font* font = TTF_OpenFont("medias/font/Sora.ttf", 20);
     if (!font) {
-        LogMessage("Failed to load font: %s\n", TTF_GetError());
+        //LogMessage("Failed to load font: %s\n", TTF_GetError());
         return;
     }
 
-    SDL_Color textColor = {255, 255, 255};  // White text
+    SDL_Color textColor = {255,255, 255};  // White text
 
     // Labels for numbers (1 to gridWidth)
     for (int i = 1; i <= grid->gridWidth; i++) {
