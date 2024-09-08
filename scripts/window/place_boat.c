@@ -5,6 +5,7 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 #include <stdbool.h>
+#include "../../headers/window/playing_interface.h"
 #include <time.h>
 #include "../../headers/player.h"
 #include "../../headers/ships.h"
@@ -25,7 +26,12 @@ SDL_Texture* loadTexture(const char *file, SDL_Renderer *renderer) {
 
 void PlayGame() {
     printf("The game is ready to play");
-    
+    Fleet myflee=player_one.fleet;
+    //afficher ShipX
+    printf("ShipX: %d\n",myflee.destroyer.ShipX);
+    printf("Name: %s\n",player_one.name);
+    OpenPlayWindow(first_window,first_renderer,&second_window,&second_renderer);
+    PlayingInterface(second_window,second_renderer);
 }
 // Function to draw a colored rectangle (for selection indication)
 void DrawSelectionRect(SDL_Renderer *renderer, int x, int y, int width, int height, bool isDragging) {
@@ -36,10 +42,24 @@ void DrawSelectionRect(SDL_Renderer *renderer, int x, int y, int width, int heig
     }
 }
 
-void PlaceShipInGrid(Ships *ship, int grid[10][10]) {
+void PlaceShipInGrid(Ships *ship, int grid[10][10], int oldX, int oldY, bool oldHorizontal) {
+    int length = ship->n_cases;
+
+    // Remplacer l'ancienne position par des zéros
+    if (oldHorizontal) {
+        for (int i = 0; i < length; i++) {
+            grid[oldY][oldX + i] = 0;  // Remplace les anciennes cases horizontalement
+        }
+    } else {
+        for (int i = 0; i < length; i++) {
+            grid[oldY + i][oldX] = 0;  // Remplace les anciennes cases verticalement
+        }
+    }
+
+    // Placer le navire à la nouvelle position
     int x = ship->ShipX;
     int y = ship->ShipY;
-    int length = ship->n_cases;
+
     if (ship->horizontal) {
         for (int i = 0; i < length; i++) {
             grid[y][x + i] = ship->ship_id;  // Remplit les cases horizontalement
@@ -49,6 +69,9 @@ void PlaceShipInGrid(Ships *ship, int grid[10][10]) {
             grid[y + i][x] = ship->ship_id;  // Remplit les cases verticalement
         }
     }
+
+    // Afficher la matrice après modification
+    afficherMatrice(grid);
 }
 
 // Function to draw a ship
@@ -150,7 +173,6 @@ void UpdateShipPosition(Grid *grid, Ships *ship, int mouseX, int mouseY, Fleet *
     int oldShipY = ship->ShipY;
     ship->ShipX = newShipX;
     ship->ShipY = newShipY;
-
     // Check for collisions with other ships
     bool collision = false;
     Ships *allShips[] = {
@@ -160,7 +182,7 @@ void UpdateShipPosition(Grid *grid, Ships *ship, int mouseX, int mouseY, Fleet *
         &fleet->aircraft_carrier,
         &fleet->cruiser
     };
-
+    printf("stacke trace: %s",ship->name);
     for (int i = 0; i < 5; i++) {
         Ships *otherShip = allShips[i];
         if (otherShip != ship && otherShip->name[0] != '\0') {
@@ -170,13 +192,36 @@ void UpdateShipPosition(Grid *grid, Ships *ship, int mouseX, int mouseY, Fleet *
             }
         }
     }
-
+    switch (ship->ship_id)
+    {
+    case 8:
+        player_one.fleet.destroyer.ShipX=newShipX;
+        player_one.fleet.destroyer.ShipY=newShipY;
+    break;
+    case 9:
+          player_one.fleet.torpedo_boat.ShipX=newShipX;
+          player_one.fleet.torpedo_boat.ShipY=newShipY;
+    break;
+    case 10:
+          player_one.fleet.submarine.ShipX=newShipX;
+          player_one.fleet.submarine.ShipY=newShipY;
+    break;
+    case 12:
+          player_one.fleet.aircraft_carrier.ShipX=newShipX;
+          player_one.fleet.aircraft_carrier.ShipY=newShipY;
+    break;
+    case 13:
+          player_one.fleet.cruiser.ShipX=newShipX;
+          player_one.fleet.cruiser.ShipY=newShipY;
+    break;
+    }
+    
     if (collision) {
         // Revert to old position if collision detected
         ship->ShipX = oldShipX;
         ship->ShipY = oldShipY;
     }
-    PlaceShipInGrid(ship,player_one_grid);
+    PlaceShipInGrid(ship,player_one_grid,oldShipX,oldShipY,ship->horizontal);
 }
 
 // Function to randomly place a ship on the grid
@@ -191,6 +236,37 @@ void RandomizeShipPlacement(Grid *grid, Ships *ship) {
     ship->ShipX = startX;
     ship->ShipY = startY;
     ship->horizontal = horizontal;
+    int newShipX=startX;
+    int newShipY=startY;
+    switch (ship->ship_id)
+    {
+    case 8:
+        player_one.fleet.destroyer.ShipX=newShipX;
+        player_one.fleet.destroyer.ShipY=newShipY;
+        player_one.fleet.destroyer.horizontal=horizontal;
+    break;
+    case 9:
+          player_one.fleet.torpedo_boat.ShipX=newShipX;
+          player_one.fleet.torpedo_boat.ShipY=newShipY;
+            player_one.fleet.torpedo_boat.horizontal=horizontal;
+    break;
+    case 10:
+          player_one.fleet.submarine.ShipX=newShipX;
+          player_one.fleet.submarine.ShipY=newShipY;
+            player_one.fleet.submarine.horizontal=horizontal;
+    break;
+    case 12:
+          player_one.fleet.aircraft_carrier.ShipX=newShipX;
+          player_one.fleet.aircraft_carrier.ShipY=newShipY;
+            player_one.fleet.aircraft_carrier.horizontal=horizontal;
+    break;
+    case 13:
+          player_one.fleet.cruiser.ShipX=newShipX;
+          player_one.fleet.cruiser.ShipY=newShipY;
+            player_one.fleet.cruiser.horizontal=horizontal;
+    break;
+    }
+    
 }
 
 // Function to draw a fleet on the grid
@@ -266,11 +342,11 @@ void ShowPlaceBoat(SDL_Window* window, SDL_Renderer* renderer) {
     RandomizeShipPlacement(&grid, &fleet.submarine);
     RandomizeShipPlacement(&grid, &fleet.aircraft_carrier);
     RandomizeShipPlacement(&grid, &fleet.cruiser);
-    PlaceShipInGrid(&fleet.torpedo_boat,player_one_grid);
-    PlaceShipInGrid(&fleet.destroyer,player_one_grid);
-    PlaceShipInGrid(&fleet.submarine,player_one_grid);
-    PlaceShipInGrid(&fleet.aircraft_carrier,player_one_grid);
-    PlaceShipInGrid(&fleet.cruiser,player_one_grid);
+    PlaceShipInGrid(&fleet.torpedo_boat,player_one_grid,0,0,&fleet.torpedo_boat.horizontal);
+    PlaceShipInGrid(&fleet.destroyer,player_one_grid,0,0,&fleet.destroyer.horizontal);
+    PlaceShipInGrid(&fleet.submarine,player_one_grid,0,0,&fleet.submarine.horizontal);
+    PlaceShipInGrid(&fleet.aircraft_carrier,player_one_grid,0,0,&fleet.aircraft_carrier.horizontal);
+    PlaceShipInGrid(&fleet.cruiser,player_one_grid,0,0,&fleet.cruiser.horizontal);
     bool running = true;
     SDL_Event event;
     bool dragging = false;
@@ -281,66 +357,76 @@ void ShowPlaceBoat(SDL_Window* window, SDL_Renderer* renderer) {
     SDL_Color textColor = {255, 255, 255, 255};
     CreateClickableElement(renderer,214,520,&width,&height, "Play", textColor,"medias/images/btn-play.png",PlayGame,12);
     while (running) {
-        while (SDL_PollEvent(&event)) {
-            switch (event.type) {
-                case SDL_QUIT:
-                    running = false;
-                    break;
-                case SDL_MOUSEBUTTONDOWN:
-                    if (event.button.button == SDL_BUTTON_LEFT) {
-                        int mouseX = event.button.x;
-                        int mouseY = event.button.y;
+    while (SDL_PollEvent(&event)) {
+        switch (event.type) {
+            case SDL_QUIT:
+                running = false;
+                break;
+
+            // Clic gauche pour sélectionner et déplacer le navire
+            case SDL_MOUSEBUTTONDOWN:
+                if (event.button.button == SDL_BUTTON_LEFT) {
+                    int mouseX = event.button.x;
+                    int mouseY = event.button.y;
                 
-                   TriggerClickCallbacks(mouseX,mouseY);
-                
-             
-                        Ships *ships[] = {
-                            &fleet.destroyer,
-                            &fleet.torpedo_boat,
-                            &fleet.submarine,
-                            &fleet.aircraft_carrier,
-                            &fleet.cruiser
+                    TriggerClickCallbacks(mouseX, mouseY);
+
+                    Ships *ships[] = {
+                        &fleet.destroyer,
+                        &fleet.torpedo_boat,
+                        &fleet.submarine,
+                        &fleet.aircraft_carrier,
+                        &fleet.cruiser
+                    };
+
+                    for (int i = 0; i < 5; i++) {
+                        Ships *ship = ships[i];
+                        SDL_Rect shipRect = {
+                            grid.xPos + grid.cellSize * ship->ShipX,
+                            grid.yPos + grid.cellSize * ship->ShipY,
+                            ship->horizontal ? grid.cellSize * ship->n_cases : grid.cellSize,
+                            ship->horizontal ? grid.cellSize : grid.cellSize * ship->n_cases
                         };
 
-                        for (int i = 0; i < 5; i++) {
-                            Ships *ship = ships[i];
-                            SDL_Rect shipRect = {
-                                grid.xPos + grid.cellSize * ship->ShipX,
-                                grid.yPos + grid.cellSize * ship->ShipY,
-                                ship->horizontal ? grid.cellSize * ship->n_cases : grid.cellSize,
-                                ship->horizontal ? grid.cellSize : grid.cellSize * ship->n_cases
-                            };
-
-                            if (SDL_PointInRect(&(SDL_Point){mouseX, mouseY}, &shipRect)) {
-                                dragging = true;
-                                currentShip = ship;
-                                offsetX = mouseX - shipRect.x;
-                                offsetY = mouseY - shipRect.y;
-                                break;
-                            }
+                        if (SDL_PointInRect(&(SDL_Point){mouseX, mouseY}, &shipRect)) {
+                            dragging = true;
+                            printf("ship selected");
+                            currentShip = ship;
+                            offsetX = mouseX - shipRect.x;
+                            offsetY = mouseY - shipRect.y;
+                            break;
                         }
                     }
-                    
-                    break;
-                case SDL_MOUSEBUTTONUP:
-                    if (event.button.button == SDL_BUTTON_LEFT) {
-                        dragging = false;
-                        currentShip = NULL;
-                    }
-                    break;
-                case SDL_MOUSEMOTION:
-                    if (dragging && currentShip) {
-                        int mouseX = event.motion.x - offsetX;
-                        int mouseY = event.motion.y - offsetY;
-                        UpdateShipPosition(&grid, currentShip, mouseX, mouseY, &fleet);
-                    }
-                    break;
-            }
+                }
+                // Clic droit pour changer l'orientation du navire
+                if (event.button.button == SDL_BUTTON_RIGHT && currentShip) {
+                    printf("inverse l orientation");
+                    currentShip->horizontal = !currentShip->horizontal;  // Inverser l'orientation
+                }
+                break;
+
+            // Relâcher le bouton gauche pour arrêter de déplacer le navire
+            case SDL_MOUSEBUTTONUP:
+                if (event.button.button == SDL_BUTTON_LEFT) {
+                    dragging = false;
+                    currentShip = NULL;
+                }
+                break;
+
+            // Mouvement de la souris pour déplacer le navire sélectionné
+            case SDL_MOUSEMOTION:
+                if (dragging && currentShip) {
+                    int mouseX = event.motion.x - offsetX;
+                    int mouseY = event.motion.y - offsetY;
+                    UpdateShipPosition(&grid, currentShip, mouseX, mouseY, &fleet);
+                }
+                break;
         }
-        DrawGrid(&grid);
-        DrawFleet(&grid, &fleet);
-        SDL_RenderPresent(renderer);
     }
+    DrawGrid(&grid);
+    DrawFleet(&grid, &fleet);
+    SDL_RenderPresent(renderer);
+}
 
     SDL_DestroyTexture(grid.backgroundImage);
     SDL_DestroyRenderer(renderer);

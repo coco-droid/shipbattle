@@ -1,0 +1,186 @@
+#include "../../headers/load_text.h"
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>  // Inclure SDL_ttf pour le rendu du texte
+#include <stdio.h>
+#include <string.h>
+#include "../../headers/window/options_play.h"
+#include "../../headers/events.h"
+#include "../../headers/log.h"
+#include "../../headers/player.h"
+#include "../../headers/window/place_boat.h"
+#include "../../headers/graphics.h"
+#include "../../headers/damier.h"
+#include "../../headers/computer_mode.h"
+
+#define MAX_SHOTS 4
+
+void DrawSelectedCells(Grid* grid, int selected_cells[MAX_SHOTS][2], int num_shots, SDL_Texture* targetTexture) {
+    // Dessiner chaque cellule sélectionnée
+    for (int i = 0; i < num_shots; i++) {
+        SDL_Rect selectedRect = {grid->xPos + selected_cells[i][0] * grid->cellSize, 
+                                 grid->yPos + selected_cells[i][1] * grid->cellSize, 
+                                 grid->cellSize, grid->cellSize};
+
+        // Assurez-vous que l'alpha est réinitialisé pour être complètement opaque
+        SDL_SetTextureAlphaMod(targetTexture, 255);
+        SDL_RenderCopy(grid->renderer, targetTexture, NULL, &selectedRect);
+    }
+}
+
+
+void PlayingInterface(SDL_Window* Window, SDL_Renderer* Renderer) {
+    SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
+    SDL_RenderClear(Renderer);
+
+    // Charger et afficher l'image de fond
+    SDL_Surface *backgroundSurface = IMG_Load("medias/images/metalic_panel.png");
+    if (!backgroundSurface) {
+        return;
+    }
+    SDL_Texture *backgroundTexture = SDL_CreateTextureFromSurface(Renderer, backgroundSurface);
+    SDL_FreeSurface(backgroundSurface);
+
+    SDL_RenderCopy(Renderer, backgroundTexture, NULL, NULL);
+
+    Fleet fleet = player_one.fleet;
+
+    // Initialisation des grilles
+    Grid play_grid;
+    play_grid.renderer = Renderer;
+    play_grid.gridWidth = 10;
+    play_grid.gridHeight = 10;
+    play_grid.cellSize = 41;
+    play_grid.xPos = 50;
+    play_grid.yPos = 90;
+
+    Grid radar_grid;
+    radar_grid.renderer = Renderer;
+    radar_grid.gridWidth = 10;
+    radar_grid.gridHeight = 10;
+    radar_grid.cellSize = 31;
+    radar_grid.xPos = 530;
+    radar_grid.yPos = 230;
+
+    SDL_Surface* bgSurface = IMG_Load("medias/images/oceangrid.png");
+    radar_grid.backgroundImage = SDL_CreateTextureFromSurface(Renderer, bgSurface);
+    play_grid.backgroundImage = SDL_CreateTextureFromSurface(Renderer, bgSurface);
+    SDL_FreeSurface(bgSurface);
+
+    // Dessiner les grilles
+    DrawGrid(&play_grid);
+    DrawGrid(&radar_grid);
+    // Ajouter les textures des bateaux
+    add_texture_ship(&fleet.aircraft_carrier, Renderer, "medias/images/ships/cruiser-180.png", "medias/images/ships/cruiser-90.png");
+    add_texture_ship(&fleet.cruiser, Renderer, "medias/images/ships/cruiser-180.png", "medias/images/ships/cruiser-90.png");
+    add_texture_ship(&fleet.destroyer, Renderer, "medias/images/ships/cruiser-180.png", "medias/images/ships/cruiser-90.png");
+    add_texture_ship(&fleet.submarine, Renderer, "medias/images/ships/cruiser-180.png", "medias/images/ships/cruiser-90.png");
+    add_texture_ship(&fleet.torpedo_boat, Renderer, "medias/images/ships/cruiser-180.png", "medias/images/ships/cruiser-90.png");
+
+    DrawFleet(&radar_grid, &fleet);
+
+    // Charger l'image de "target"
+    SDL_Surface *targetSurface = IMG_Load("medias/images/targeting.png");
+    SDL_Texture *targetTexture = SDL_CreateTextureFromSurface(Renderer, targetSurface);
+    SDL_FreeSurface(targetSurface);
+
+    // Variables pour la gestion des tirs
+    int selected_cells[MAX_SHOTS][2] = {{-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}};
+    int num_shots = 0;
+
+    int quit = 0;
+    SDL_Event event;
+    int mouse_x, mouse_y;
+    int cell_x = -1, cell_y = -1;
+    int highlight_x = -1, highlight_y = -1;
+
+    while (!quit) {
+        while (SDL_PollEvent(&event)) {
+            switch (event.type) {
+                case SDL_QUIT:
+                    quit = 1;
+                    break;
+
+                case SDL_MOUSEMOTION:
+                    SDL_GetMouseState(&mouse_x, &mouse_y);
+
+                    // Si la souris est dans la zone de la grille play_grid
+                    if (mouse_x >= play_grid.xPos && mouse_x < play_grid.xPos + play_grid.gridWidth * play_grid.cellSize &&
+                        mouse_y >= play_grid.yPos && mouse_y < play_grid.yPos + play_grid.gridHeight * play_grid.cellSize) {
+                        // Calculer la cellule de la grille
+                        cell_x = (mouse_x - play_grid.xPos) / play_grid.cellSize;
+                        cell_y = (mouse_y - play_grid.yPos) / play_grid.cellSize;
+                        highlight_x = cell_x;
+                        highlight_y = cell_y;
+                    } else {
+                        highlight_x = -1;
+                        highlight_y = -1;
+                    }
+                    break;
+
+                case SDL_MOUSEBUTTONDOWN:
+                    printf("Click handle");
+                    printf("hightlight %d",highlight_y);
+                    printf("hightlight %d",highlight_x);
+                    if(event.button.button == SDL_BUTTON_RIGHT){
+                        printf("right click");
+                    }
+                    if (highlight_x != -1 && highlight_y != -1) {
+                        int already_selected = 0;
+                        printf("selectionner cellule");
+                        // Vérifier si cette cellule est déjà sélectionnée
+                        for (int i = 0; i < num_shots; i++) {
+                            if (selected_cells[i][0] == highlight_x && selected_cells[i][1] == highlight_y) {
+                                already_selected = 1;
+
+                                // Si déjà sélectionné, désélectionner
+                                for (int j = i; j < num_shots - 1; j++) {
+                                    selected_cells[j][0] = selected_cells[j + 1][0];
+                                    selected_cells[j][1] = selected_cells[j + 1][1];
+                                }
+                                selected_cells[num_shots - 1][0] = -1;
+                                selected_cells[num_shots - 1][1] = -1;
+                                num_shots--;
+                                break;
+                            }
+                        }
+
+                        // Si non sélectionné et qu'il reste des tirs, ajouter la cellule
+                        if (!already_selected && num_shots < MAX_SHOTS) {
+                            printf("selected!!");
+                            selected_cells[num_shots][0] = highlight_x;
+                            selected_cells[num_shots][1] = highlight_y;
+                            num_shots++;
+                        }
+                    }
+                    break;
+            }
+        }
+
+        // Redessiner l'interface
+        SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
+        SDL_RenderClear(Renderer);
+
+        // Redessiner les éléments de la grille
+        SDL_RenderCopy(Renderer, backgroundTexture, NULL, NULL);
+        DrawGrid(&play_grid);
+        DrawGrid(&radar_grid);
+        DrawFleet(&radar_grid,&fleet);
+
+        // Dessiner la "target" qui suit la souris dans la grille
+        if (highlight_x != -1 && highlight_y != -1) {
+            SDL_Rect targetRect = {play_grid.xPos + highlight_x * play_grid.cellSize, 
+                                   play_grid.yPos + highlight_y * play_grid.cellSize, 
+                                   play_grid.cellSize, play_grid.cellSize};
+            SDL_SetTextureAlphaMod(targetTexture, 128);  // Transparence
+            SDL_RenderCopy(Renderer, targetTexture, NULL, &targetRect);
+        }
+
+        // Dessiner les cellules sélectionnées
+        DrawSelectedCells(&play_grid, selected_cells, num_shots, targetTexture);
+
+        SDL_RenderPresent(Renderer);  // Mettre à jour l'affichage
+    }
+
+    SDL_DestroyTexture(targetTexture);
+    SDL_DestroyTexture(backgroundTexture);
+}

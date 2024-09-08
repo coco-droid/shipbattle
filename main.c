@@ -69,8 +69,8 @@ int main(int argc, char *argv[]) {
     // Declare and initialize the alive flag
     
     // Show the startup menu
-    //ShowStartupMenu(first_window,first_renderer);
-    Dialog_1(first_window,first_renderer);
+    ShowStartupMenu(first_window,first_renderer);
+    //Dialog_1(first_window,first_renderer);
     //ShowOption(first_window,first_renderer);
 //ShowPlaceBoat(first_window,first_renderer);
    //ShowPlayerNameInput(first_window,first_renderer);

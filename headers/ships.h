@@ -7,7 +7,8 @@
 #include <SDL2/SDL_image.h>
 
 typedef struct ships {
-    char name[MAX_NAME_LENGTH];  // Nom du navire
+    char name[MAX_NAME_LENGTH];
+      // Nom du navire
     int ammunitions;
     int n_cases;
     int health;
@@ -24,6 +25,7 @@ typedef struct ships {
 } Ships;
 
 // Fonctions pour manipuler les navires
+void add_texture_ship(Ships* ships, SDL_Renderer* renderer,char* image_h_path, char* image_v_path);
 void initialize_ship(Ships* s, const char* name, const char* image_h_path, const char* image_v_path, int ammunitions, int n_cases, int health, int damage, SDL_Renderer* renderer ,int ship_id);
 void cleanup_ship(Ships* s);  // Fonction pour libérer les ressources
 #endif

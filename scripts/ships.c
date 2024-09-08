@@ -34,6 +34,31 @@ void initialize_ship(Ships* s, const char* name, const char* image_h_path, const
     memset(s->cases, 0, sizeof(s->cases));
 }
 
+void add_texture_ship(Ships* ships, SDL_Renderer* renderer,char* image_h_path,char* image_v_path) {
+    // Charger la texture horizontale
+    ships->texture_h = IMG_LoadTexture(renderer, image_h_path);
+    if (!ships->texture_h) {
+        // Gérer l'erreur de chargement de la texture horizontale
+        fprintf(stderr, "Erreur lors du chargement de la texture horizontale: %s\n", SDL_GetError());
+        return;
+    }
+
+    // Charger la texture verticale
+    ships->texture_v = IMG_LoadTexture(renderer, image_v_path);
+    if (!ships->texture_v) {
+        // Gérer l'erreur de chargement de la texture verticale
+        fprintf(stderr, "Erreur lors du chargement de la texture verticale: %s\n", SDL_GetError());
+
+        // Libérer la texture horizontale si la verticale échoue
+        SDL_DestroyTexture(ships->texture_h);
+        ships->texture_h = NULL;  // Éviter de garder un pointeur invalide
+        return;
+    }
+
+    // Vérification finale
+    printf("Textures successfully loaded for the ship.\n");
+}
+
 // Fonction pour libérer les ressources des navires
 void cleanup_ship(Ships* s) {
     if (s->texture_h) {
