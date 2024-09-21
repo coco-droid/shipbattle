@@ -1,31 +1,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdio.h>
-
-void afficherMatrice(int matrice[10][10]) {
-    // Afficher la ligne supérieure
-    printf("  +");
-    for (int i = 0; i < 10; i++) {
-        printf("----");
-    }
-    printf("+\n");
-
-    // Afficher les lignes de la matrice avec des bordures
-    for (int i = 0; i < 10; i++) {
-        printf("%2d|", i); // Afficher l'index de la ligne
-        for (int j = 0; j < 10; j++) {
-            printf(" %2d ", matrice[i][j]);
-        }
-        printf("|\n");
-    }
-
-    // Afficher la ligne inférieure
-    printf("  +");
-    for (int i = 0; i < 10; i++) {
-        printf("----");
-    }
-    printf("+\n");
-}
+#include "../headers/ai.h"
 
 void afficherShooting(int matrice[4][2]) {
     // Affiche les tirs réalisés
@@ -34,7 +10,7 @@ void afficherShooting(int matrice[4][2]) {
     }
 }
 
-int** pnj_shoot(int matrice[10][10], bool first_shoot) {
+int** pnj_shoot(int matrice[10][10]) {
     static int return_matrice[4][2];
     int cases_toucher[2];
     int i = 0;
@@ -189,35 +165,3 @@ int** pnj_shoot(int matrice[10][10], bool first_shoot) {
     return (int**)return_matrice;
 }
 
-int main() {
-    int matrice[10][10] = {
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 2, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 2, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-    };
-
-    // Affichage initial de la matrice
-    printf("Matrice initiale :\n");
-    afficherMatrice(matrice);
-
-    // Simuler un tir du PNJ
-    bool first_shoot = true;
-    int** tirs = pnj_shoot(matrice, first_shoot);
-
-    // Affichage des tirs réalisés
-    printf("Tirs réalisés :\n");
-    afficherShooting((int(*)[2])tirs);
-
-    // Affichage de la matrice après les tirs
-    printf("Matrice après les tirs :\n");
-    afficherMatrice(matrice);
-
-    return 0;
-}

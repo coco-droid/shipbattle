@@ -1,9 +1,9 @@
 #ifndef LOGICS_H
 #define LOGICS_H
-
-typedef void (*PlayerFireFunc)(Player* p, Player* opponent, int x, int y);
-typedef void (*PlayerPositionFunc)(Player* p);
-typedef void (*EnemyPositionFunc)(Enemy* e);
-typedef void (*EnemyFireFunc)(Enemy* e, Player* p);
+#include <stdlib.h>
+typedef void (*DynamicFunct)();
+//player_two_start
+extern DynamicFunct player_two_init_state;
+extern DynamicFunct player_twot_acting;
 
 #endif 

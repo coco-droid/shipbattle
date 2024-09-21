@@ -1,28 +1,153 @@
-#include "headers/graphics.h"
+#include <stdlib.h>
+#include <stdbool.h>
+#include <stdio.h>
 
-int main(int argc, char* argv[]) {
-    init_graphics();
+void afficherMatrice(int matrice[10][10]) {
+    //system('cls');
+    // Afficher la ligne supérieure
+    printf("  +");
+    for (int i = 0; i < 10; i++) {
+        printf("----");
+    }
+    printf("+\n");
 
-    // Initialisation de l'écran du menu
-    init_menu_screen();
-
-    // Boucle principale du jeu
-    while (1) {
-        // Gestion des événements
-        handle_events();
-
-        // Affichage de l'écran du menu
-        draw_menu_screen();
-
-        // Transition vers l'écran de jeu
-        init_game_screen();
-        while (game_is_running) {
-            handle_game_events();
-            update_game_state();
-            draw_game_screen();
+    // Afficher les lignes de la matrice avec des bordures
+    for (int i = 0; i < 10; i++) {
+        printf("%2d|", i); // Afficher l'index de la ligne
+        for (int j = 0; j < 10; j++) {
+            printf(" %2d ", matrice[i][j]);
         }
+        printf("|\n");
     }
 
-    cleanup_graphics();
-    return 0;
+    // Afficher la ligne inférieure
+    printf("  +");
+    for (int i = 0; i < 10; i++) {
+        printf("----");
+    }
+    printf("+\n");
+}
+
+void afficherShooting(int matrice[4][2])
+{
+    //the png shoot on
+     for (int i = 0; i < 4; i++) {
+        printf("Shoot:  %2d|", i); // Afficher l'index de la ligne
+        for (int j = 0; j < 2; j++) {
+            printf("On x:%2d ,y:%2d", matrice[i][0], matrice[i][1]);
+        }
+        printf("|\n");
+    }
+}
+
+int** pnj_shoot(int matrice[10][10], bool first_shoot) {
+    static int return_matrice[4][2];
+    int cases_toucher[2];
+    int i = 0;
+    bool soti = false;
+
+    // Analyze 
+    while (!soti && i < 10) {
+        int j = 0;
+        while (j < 10) {
+            if (matrice[i][j] != 0 && matrice[i][j] == 2) {
+                soti = true;
+                cases_toucher[0] = i;
+                cases_toucher[1] = j;
+                break;
+            }
+            j++;
+        }
+        if (soti) break;
+        i++;
+    }
+
+    // Shoot
+    if (soti) {
+        int x = cases_toucher[0];
+        int y = cases_toucher[1];
+        int cases2_matrice[2];
+        bool adjacent_found = false;
+
+        // Check adjacent cells
+        if (x > 0 && matrice[x-1][y] == 2) {
+            cases2_matrice[0] = x;
+            cases2_matrice[1] = y;
+            adjacent_found = true;
+        }
+        if (x < 9 && matrice[x+1][y] == 2) {
+           cases2_matrice[0] = x;
+            cases2_matrice[1] = y;
+            adjacent_found = true;
+        }
+        if (y > 0 && matrice[x][y-1] == 2) {
+           cases2_matrice[0] = x;
+            cases2_matrice[1] = y;
+            adjacent_found = true;
+        }
+        if (y < 9 && matrice[x][y+1] == 2) {
+            cases2_matrice[0] = x;
+            cases2_matrice[1] = y;
+            adjacent_found = true;
+        }
+
+        if (!adjacent_found) {
+            // Random shoot if no adjacent cells are found
+            int rand_x=cases_toucher[0];
+            int rand_y=cases_toucher[1];
+            return_matrice[0][0] = rand_x+1;
+            return_matrice[0][1] = rand_y;
+            return_matrice[1][0] = rand_x-1;
+            return_matrice[1][1] = rand_y;
+            return_matrice[2][0] = rand_x;
+            return_matrice[2][1] = rand_y + 1;
+            return_matrice[3][0] = rand_x;
+            return_matrice[3][1] = rand_y-1;
+        }
+        else{
+            //
+            if(cases2_matrice[0]==cases_toucher[0])
+            {
+                //horizontale 
+                 int rand_x=cases_toucher[0];
+            int rand_y=cases_toucher[1];
+            return_matrice[0][0] = rand_x;
+            return_matrice[0][1] = rand_y+1;
+            return_matrice[1][0] = rand_x;
+            return_matrice[1][1] = rand_y+2;
+            return_matrice[2][0] =rand_x;
+            return_matrice[2][1] = cases2_matrice[1]+1;
+            return_matrice[3][0] =rand_x;
+            return_matrice[3][1] = cases2_matrice[1]+2;
+           
+            }
+            else{
+                //verticale
+                   int rand_x=cases_toucher[0];
+            int rand_y=cases_toucher[1];
+            return_matrice[0][0] = rand_x+1;
+            return_matrice[0][1] = rand_y;
+            return_matrice[1][0] = rand_x+2;
+            return_matrice[1][1] = rand_y;
+            return_matrice[2][0] =cases2_matrice[0]+1;
+            return_matrice[2][1] = rand_y;
+            return_matrice[3][0] = cases2_matrice[0]+2;
+            return_matrice[3][1] = rand_y;
+            }
+        }
+    } else {
+        // Random shoot
+        int x = rand() % 10;
+        int y = rand() % 10;
+        return_matrice[0][0] = x;
+        return_matrice[0][1] = y;
+        return_matrice[1][0] = x + 1;
+        return_matrice[1][1] = y;
+        return_matrice[2][0] = x;
+        return_matrice[2][1] = y + 1;
+        return_matrice[3][0] = x + 1;
+        return_matrice[3][1] = y + 1;
+    }
+
+    return (int**)return_matrice;
 }

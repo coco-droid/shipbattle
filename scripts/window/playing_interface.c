@@ -11,9 +11,11 @@
 #include "../../headers/graphics.h"
 #include "../../headers/damier.h"
 #include "../../headers/computer_mode.h"
-
+#include "../../headers/ai.h"
 #define MAX_SHOTS 4
-
+// Variables pour la gestion des tirs
+int selected_cells[MAX_SHOTS][2] = {{-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}};
+int num_shots = 0;
 void DrawSelectedCells(Grid* grid, int selected_cells[MAX_SHOTS][2], int num_shots, SDL_Texture* targetTexture) {
     // Dessiner chaque cellule sélectionnée
     for (int i = 0; i < num_shots; i++) {
@@ -27,11 +29,93 @@ void DrawSelectedCells(Grid* grid, int selected_cells[MAX_SHOTS][2], int num_sho
     }
 }
 
+void DrawHints(Grid* grid, int hint[10][10]) {
+    for (int i = 0; i < grid->gridWidth; i++) {
+        for (int j = 0; j < grid->gridHeight; j++) {
+            SDL_Rect cellRect = {grid->xPos + i * grid->cellSize, grid->yPos + j * grid->cellSize, 
+                                 grid->cellSize, grid->cellSize};
 
+            if (hint[i][j] == 2) {
+                SDL_SetRenderDrawColor(grid->renderer, 255, 0, 0, 255);  // Rouge pour un touché
+                SDL_RenderFillRect(grid->renderer, &cellRect);
+            } else if (hint[i][j] == 1) {
+                SDL_SetRenderDrawColor(grid->renderer, 0, 0, 255, 255);  // Bleu pour un raté
+                SDL_RenderFillRect(grid->renderer, &cellRect);
+            }
+        }
+    }
+}
+
+void FireAtCell(int boat_pos[10][10], int hint[10][10], int x, int y)
+{
+    printf("tirs dans la cellule");
+    // Vérifier si la cellule a déjà été tirée
+    if (hint[x][y] != 0) {
+        printf("Cell already fired upon\n");
+        return; // Si déjà tirée, on ne fait rien
+    }
+
+    // Vérifier si un bateau se trouve dans la cellule ciblée
+    if (boat_pos[x][y] != 0) {
+        // Touché
+        printf("Hit!\n");
+        int boat_id = boat_pos[x][y];  // Identifier le bateau
+        hint[x][y] = 2;  // Marquer comme touché dans la matrice hint
+
+        // Vérifier si la totalité du bateau est coulé
+        int boat_sunk = 1;
+
+        // Vérification horizontale et verticale
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                // Si une autre partie du bateau est encore intacte (non touchée), le bateau n'est pas coulé
+                if (boat_pos[i][j] == boat_id && hint[i][j] != 2) {
+                    boat_sunk = 0;
+                    break;
+                }
+            }
+            if (!boat_sunk) break;
+        }
+
+        // Si le bateau est coulé, marquer toutes ses parties comme coulées dans hint
+        if (boat_sunk) {
+            printf("Ship sunk!\n");
+            for (int i = 0; i < 10; i++) {
+                for (int j = 0; j < 10; j++) {
+                    if (boat_pos[i][j] == boat_id) {
+                        hint[i][j] = 3;  // Marquer comme coulé
+                    }
+                }
+            }
+        }
+
+    } else {
+        // Manqué
+        printf("Miss!\n");
+        hint[x][y] = 1;  // Marquer comme manqué dans la matrice hint
+    }
+}
+
+void FireCallback(){
+    printf("fire on a cell");
+    // Obtenir les cellules sélectionnées de l'interface utilisateur faire une boucle pour shooter dans les cell
+    for (int i = 0; i < num_shots; i++) {
+        FireAtCell(player_two_grid,hint_player_one_grid, selected_cells[i][0], selected_cells[i][1]);
+    }
+    // Réinitialiser les cellules sélectionnées
+    num_shots = 0;
+    //et les selected cells
+    for (int i = 0; i < MAX_SHOTS; i++) {
+        selected_cells[i][0] = -1;
+        selected_cells[i][1] = -1;
+    }
+}
 void PlayingInterface(SDL_Window* Window, SDL_Renderer* Renderer) {
     SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
-    SDL_RenderClear(Renderer);
-
+    //SDL_RenderClear(Renderer);
+      int width = 0; 
+    int height = 0; 
+    SDL_Color textColor = {255, 255, 255, 255};
     // Charger et afficher l'image de fond
     SDL_Surface *backgroundSurface = IMG_Load("medias/images/metalic_panel.png");
     if (!backgroundSurface) {
@@ -75,24 +159,24 @@ void PlayingInterface(SDL_Window* Window, SDL_Renderer* Renderer) {
     add_texture_ship(&fleet.destroyer, Renderer, "medias/images/ships/cruiser-180.png", "medias/images/ships/cruiser-90.png");
     add_texture_ship(&fleet.submarine, Renderer, "medias/images/ships/cruiser-180.png", "medias/images/ships/cruiser-90.png");
     add_texture_ship(&fleet.torpedo_boat, Renderer, "medias/images/ships/cruiser-180.png", "medias/images/ships/cruiser-90.png");
+    //Fire button 
 
     DrawFleet(&radar_grid, &fleet);
-
     // Charger l'image de "target"
     SDL_Surface *targetSurface = IMG_Load("medias/images/targeting.png");
     SDL_Texture *targetTexture = SDL_CreateTextureFromSurface(Renderer, targetSurface);
     SDL_FreeSurface(targetSurface);
 
-    // Variables pour la gestion des tirs
-    int selected_cells[MAX_SHOTS][2] = {{-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}};
-    int num_shots = 0;
+    
 
     int quit = 0;
     SDL_Event event;
     int mouse_x, mouse_y;
     int cell_x = -1, cell_y = -1;
     int highlight_x = -1, highlight_y = -1;
-
+    ClearEvents();
+     CreateClickableElement(Renderer,200,500,&width,&height, "FIRE!!!", textColor,"medias/images/btn-play.png",FireCallback,12);
+    //SDL_RenderPresent(Renderer);
     while (!quit) {
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
@@ -119,6 +203,7 @@ void PlayingInterface(SDL_Window* Window, SDL_Renderer* Renderer) {
 
                 case SDL_MOUSEBUTTONDOWN:
                     printf("Click handle");
+                    TriggerClickCallbacks(mouse_x,mouse_y);
                     printf("hightlight %d",highlight_y);
                     printf("hightlight %d",highlight_x);
                     if(event.button.button == SDL_BUTTON_RIGHT){
@@ -157,15 +242,15 @@ void PlayingInterface(SDL_Window* Window, SDL_Renderer* Renderer) {
         }
 
         // Redessiner l'interface
-        SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
-        SDL_RenderClear(Renderer);
+        //SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
+        //SDL_RenderClear(Renderer);
 
         // Redessiner les éléments de la grille
-        SDL_RenderCopy(Renderer, backgroundTexture, NULL, NULL);
+        //SDL_RenderCopy(Renderer, backgroundTexture, NULL, NULL);
         DrawGrid(&play_grid);
         DrawGrid(&radar_grid);
         DrawFleet(&radar_grid,&fleet);
-
+        DrawHints(&play_grid,hint_player_one_grid);
         // Dessiner la "target" qui suit la souris dans la grille
         if (highlight_x != -1 && highlight_y != -1) {
             SDL_Rect targetRect = {play_grid.xPos + highlight_x * play_grid.cellSize, 

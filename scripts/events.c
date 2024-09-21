@@ -86,6 +86,7 @@ void RenderTextInputWithBackground(SDL_Renderer* renderer, SDL_Texture* backgrou
 }
 
 void TriggerClickCallbacks(int x, int y) {
+    printf("launched event x:%d , y:%d",x,y);
     for (int i = 0; i < numAreas; i++) {
         ClickableArea* area = &clickableAreas[i];
 

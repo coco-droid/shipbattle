@@ -11,6 +11,7 @@
 #include "../../headers/events.h"
 #include "../../headers/log.h"
 #include "../../headers/window/place_boat.h"
+#include "../../headers/logics.h"
 #include "../../headers/graphics.h"
 #include <stdio.h>
 void BeforeChooseFleet(SDL_Event *event) {
@@ -31,7 +32,14 @@ void USA_fleet(SDL_Event *event)
         initialize_american_fleet(&player_one_fleet);
         initialize_player(&player_one,playerName,player_one_fleet,"offline",0,"");
         printf("fleet initialized!!");
-        ShowPlaceBoat(first_window,first_renderer);
+        if(player_two_init_state==NULL)
+        {
+            printf("player two not initialized");
+        }
+        player_two_init_state();
+        printf("AI matrices:\n");
+        afficherMatrice(player_two_grid);
+         ShowPlaceBoat(first_window,first_renderer);
     }
 }
 void Russian_fleet(SDL_Event *event) {
