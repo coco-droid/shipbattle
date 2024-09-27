@@ -7,6 +7,7 @@
 #include "../../headers/events.h"
 #include "../../headers/log.h"
 #include "../../headers/player.h"
+#include "../../headers/logics.h"
 #include "../../headers/window/place_boat.h"
 #include "../../headers/graphics.h"
 #include "../../headers/damier.h"
@@ -29,61 +30,82 @@ void DrawSelectedCells(Grid* grid, int selected_cells[MAX_SHOTS][2], int num_sho
     }
 }
 
-void DrawHints(Grid* grid, int hint[10][10]) {
-    for (int i = 0; i < grid->gridWidth; i++) {
-        for (int j = 0; j < grid->gridHeight; j++) {
-            SDL_Rect cellRect = {grid->xPos + i * grid->cellSize, grid->yPos + j * grid->cellSize, 
-                                 grid->cellSize, grid->cellSize};
+int DrawHints(Grid* grid, int hint[10][10]) {
+    // Limitez les itérations à la taille minimale entre la grille et la matrice de hints
+    int maxWidth = (grid->gridWidth < 10) ? grid->gridWidth : 10;
+    int maxHeight = (grid->gridHeight < 10) ? grid->gridHeight : 10;
 
-            if (hint[i][j] == 2) {
+    for (int j = 0; j < maxHeight; j++) { // Itération sur les lignes (axe Y)
+        for (int i = 0; i < maxWidth; i++) { // Itération sur les colonnes (axe X)
+            SDL_Rect cellRect = {
+                grid->xPos + i * grid->cellSize,
+                grid->yPos + j * grid->cellSize,
+                grid->cellSize,
+                grid->cellSize
+            };
+
+            if (hint[j][i] == 2) { // Accès corrigé : hint[y][x]
                 SDL_SetRenderDrawColor(grid->renderer, 255, 0, 0, 255);  // Rouge pour un touché
                 SDL_RenderFillRect(grid->renderer, &cellRect);
-            } else if (hint[i][j] == 1) {
+            } else if (hint[j][i] == 1) { // Accès corrigé : hint[y][x]
                 SDL_SetRenderDrawColor(grid->renderer, 0, 0, 255, 255);  // Bleu pour un raté
                 SDL_RenderFillRect(grid->renderer, &cellRect);
             }
+            else if(hint[j][i]== 3){
+                SDL_SetRenderDrawColor(grid->renderer, 0, 0, 0, 255);  // Noir pour une case non touchée
+                SDL_RenderFillRect(grid->renderer, &cellRect);
+            }
+            // Optionnel : Réinitialiser la couleur après le dessin
+            SDL_SetRenderDrawColor(grid->renderer, 255, 255, 255, 255); // Blanc par défaut
         }
     }
 }
 
 void FireAtCell(int boat_pos[10][10], int hint[10][10], int x, int y)
 {
-    printf("tirs dans la cellule");
+    printf("lunched 3");
+    // Validation des coordonnées
+    if (x < 0 || x >= 10 || y < 0 || y >= 10) {
+        printf("Coordonnées (%d, %d) hors limites!\n", x, y);
+        return;
+    }
+
+    printf("Tir dans la cellule (%d, %d)\n", x, y);
+
     // Vérifier si la cellule a déjà été tirée
-    if (hint[x][y] != 0) {
-        printf("Cell already fired upon\n");
+    if (hint[y][x] != 0) {
+        printf("Cellule déjà tirée\n");
         return; // Si déjà tirée, on ne fait rien
     }
 
     // Vérifier si un bateau se trouve dans la cellule ciblée
-    if (boat_pos[x][y] != 0) {
+    if (boat_pos[y][x] != 0) {
         // Touché
-        printf("Hit!\n");
-        int boat_id = boat_pos[x][y];  // Identifier le bateau
-        hint[x][y] = 2;  // Marquer comme touché dans la matrice hint
+        printf("Touché!\n");
+        int boat_id = boat_pos[y][x];  // Identifier le bateau
+        hint[y][x] = 2;  // Marquer comme touché dans la matrice hint
 
-        // Vérifier si la totalité du bateau est coulé
+        // Vérifier si la totalité du bateau est coulée
         int boat_sunk = 1;
 
-        // Vérification horizontale et verticale
-        for (int i = 0; i < 10; i++) {
+        // Parcourir l'ensemble de la grille pour vérifier les autres parties du bateau
+        for (int i = 0; i < 10 && boat_sunk; i++) {
             for (int j = 0; j < 10; j++) {
                 // Si une autre partie du bateau est encore intacte (non touchée), le bateau n'est pas coulé
-                if (boat_pos[i][j] == boat_id && hint[i][j] != 2) {
+                if (boat_pos[j][i] == boat_id && hint[j][i] != 2) {
                     boat_sunk = 0;
                     break;
                 }
             }
-            if (!boat_sunk) break;
         }
 
         // Si le bateau est coulé, marquer toutes ses parties comme coulées dans hint
         if (boat_sunk) {
-            printf("Ship sunk!\n");
+            printf("Bateau coulé!\n");
             for (int i = 0; i < 10; i++) {
                 for (int j = 0; j < 10; j++) {
-                    if (boat_pos[i][j] == boat_id) {
-                        hint[i][j] = 3;  // Marquer comme coulé
+                    if (boat_pos[j][i] == boat_id) {
+                        hint[j][i] = 3;  // Marquer comme coulé
                     }
                 }
             }
@@ -91,9 +113,15 @@ void FireAtCell(int boat_pos[10][10], int hint[10][10], int x, int y)
 
     } else {
         // Manqué
-        printf("Miss!\n");
-        hint[x][y] = 1;  // Marquer comme manqué dans la matrice hint
+        printf("Manqué!\n");
+        hint[y][x] = 1;  // Marquer comme manqué dans la matrice hint
     }
+
+    // Afficher les matrices mises à jour
+    printf("Grille des bateaux:\n");
+    afficherMatrice(boat_pos);
+    printf("Grille des tirs:\n");
+    afficherMatrice(hint);
 }
 
 void FireCallback(){
@@ -109,6 +137,11 @@ void FireCallback(){
         selected_cells[i][0] = -1;
         selected_cells[i][1] = -1;
     }
+    //change who_Played
+    //*who_Played=2;
+    //faire jouer le joueur 2
+    printf("player 2 plying:");
+    player_two_acting();
 }
 void PlayingInterface(SDL_Window* Window, SDL_Renderer* Renderer) {
     SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
@@ -251,6 +284,7 @@ void PlayingInterface(SDL_Window* Window, SDL_Renderer* Renderer) {
         DrawGrid(&radar_grid);
         DrawFleet(&radar_grid,&fleet);
         DrawHints(&play_grid,hint_player_one_grid);
+        DrawHints(&radar_grid,hint_player_two_grid);
         // Dessiner la "target" qui suit la souris dans la grille
         if (highlight_x != -1 && highlight_y != -1) {
             SDL_Rect targetRect = {play_grid.xPos + highlight_x * play_grid.cellSize, 
