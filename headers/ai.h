@@ -1,7 +1,6 @@
 #ifndef AI_H
 #define AI_H
 
-int** pnj_shoot(int matrice[10][10]);
-void afficherShooting(int matrice[4][2]);
-
+void pnj_shoot(int matrice[10][10]);
+void afficherShooting(int ai_shoot_m[][2], int size);
 #endif

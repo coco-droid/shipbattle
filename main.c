@@ -62,7 +62,14 @@ int main(int argc, char *argv[]) {
 
     // Set the blend mode to allow transparency
     SDL_SetRenderDrawBlendMode(first_renderer, SDL_BLENDMODE_BLEND);
-
+      SDL_Surface* iconSurface = IMG_Load("medias/images/logo.bmp");
+    if (!iconSurface) {
+        printf("Erreur de chargement de l'icône: %s\n", IMG_GetError());
+    } else {
+        // Définir l'icône de la fenêtre
+        SDL_SetWindowIcon(first_window, iconSurface);
+        SDL_FreeSurface(iconSurface); // Libérer la surface après utilisation
+    }
     // Initialize events
     InitEvents();
 

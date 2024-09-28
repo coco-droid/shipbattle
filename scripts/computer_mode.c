@@ -81,30 +81,13 @@ void player_2_acting() {
     printf("Player 2 acting!!!\n");
 
     // Call the pnj_shoot function and store the result (assumed to return a 2D array of shots)
-    int **shoot_On = pnj_shoot(hint_player_two_grid);
-
-    // Check if the result from pnj_shoot is valid (not NULL)
-    if (shoot_On == NULL) {
-        printf("Error: Failed to get shots from pnj_shoot.\n");
-        return;
-    }
-
-    // Print confirmation of first shot, assuming shoot_On[1][0] exists
-    printf("Shot data received! First value: %d\n", &shoot_On[1][0]);
-
-    // Display the shots (assuming afficherShooting works correctly with int**)
-    //afficherShooting(shoot_On);
-
-    // Loop through the shoot_On array for 4 shots (assuming 4 shots are planned)
-    for (int i = 0; i < 4; i++) {
-        printf("AI shoot me on %d , %d",&shoot_On[i][0],&shoot_On[i][1]);
-        FireAtCell(player_one_grid, hint_player_two_grid,&shoot_On[i][0],&shoot_On[i][1]);
+    pnj_shoot(hint_player_two_grid);
+      for (int i = 0; i < 4; i++) {
+        printf("AI shoot me on %d , %d",ai_shoot_m[i][0],ai_shoot_m[i][1]);
+        FireAtCell(player_one_grid, hint_player_two_grid,ai_shoot_m[i][1],ai_shoot_m[i][0]);
         //shoot_On[i][0] = 0;
         //shoot_On[i][1] = 0;
     }
-
-    // Print end message
-    printf("All actions completed!\n");
     }
 
 void Computer_mode(SDL_Window* window, SDL_Renderer* renderer){

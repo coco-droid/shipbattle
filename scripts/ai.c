@@ -2,53 +2,57 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include "../headers/ai.h"
+#include "../headers/player.h"
+#include <time.h>
 
-void afficherShooting(int matrice[4][2]) {
-    // Affiche les tirs réalisés
-    for (int i = 0; i < 4; i++) {
-        printf("Tir %d: (x:%2d, y:%2d)\n", i + 1, matrice[i][0], matrice[i][1]);
+
+#define TAILLE 10  // Taille de la matrice (peut être ajustée)
+
+// Prototypes de fonctions (assurez-vous que ces fonctions sont définies dans votre code)
+void afficherShooting(int ai_shoot_m[][2], int size) {
+    printf("\nAffichage des tirs:\n");
+    for (int i = 0; i < size; i++) {
+        printf("Tir %d: (%d, %d)\n", i, ai_shoot_m[i][0], ai_shoot_m[i][1]);
     }
 }
+// Fonction pour ajouter des coordonnées tout en vérifiant qu'elles ne sont pas répétées
+int ajouter_coordonnees(int ai_shoot_m[][2], int index, int x, int y) {
+    // Vérifie si les coordonnées sont valides
+    if (index >= 0 && index < 4 && x >= 0 && x < TAILLE && y >= 0 && y < TAILLE) {
+        // Vérifie si les coordonnées ont déjà été ajoutées
+        for (int i = 0; i < index; i++) {
+            if (ai_shoot_m[i][0] == x && ai_shoot_m[i][1] == y) {
+                return 0; // Les coordonnées ont déjà été ajoutées
+            }
+        }
 
-int ajouter_coordonnees(int return_matrice[][2], int index, int x, int y) {
-    if (x >= 0 && x < 10 && y >= 0 && y < 10) {
-        return_matrice[index][0] = x;
-        return_matrice[index][1] = y;
+        // Ajoute les nouvelles coordonnées
+        ai_shoot_m[index][0] = x;
+        ai_shoot_m[index][1] = y;
         return 1; // Indique qu'une coordonnée valide a été ajoutée
     }
     return 0; // Coordonnée invalide, non ajoutée
 }
 
-int** pnj_shoot(int matrice[10][10]) {
+// Fonction de tir de l'IA
+void pnj_shoot(int matrice[TAILLE][TAILLE]) {
     printf("Début de l'IA de tir.\n");
-    static int return_matrice[4][2];
-    int cases_toucher[2];
-    int i = 0;
+    int cases_toucher[2] = {-1, -1}; // Initialisation avec des valeurs impossibles pour la matrice
+    int index = 0;
     bool soti = false;
 
-    // Initialiser return_matrice avec des valeurs invalides
-    for(int k = 0; k < 4; k++) {
-        return_matrice[k][0] = -1;
-        return_matrice[k][1] = -1;
-    }
-
     // Recherche de la cellule touchée dans la matrice
-    while (!soti && i < 10) {
-        int j = 0;
-        while (j < 10) {
+    for (int i = 0; i < TAILLE && !soti; i++) {
+        for (int j = 0; j < TAILLE; j++) {
             if (matrice[i][j] == 2) { // Cellule touchée trouvée
                 soti = true;
                 cases_toucher[0] = i;
                 cases_toucher[1] = j;
                 break;
             }
-            j++;
         }
-        if (soti) break;
-        i++;
     }
 
-    // Tir
     if (soti) {
         printf("\nCellule TOUCHE: (%d, %d)", cases_toucher[0], cases_toucher[1]);
         int x = cases_toucher[0];
@@ -57,191 +61,64 @@ int** pnj_shoot(int matrice[10][10]) {
         bool adjacent_found = false;
 
         // Vérifie les cellules adjacentes
-        if (x > 0 && matrice[x-1][y] == 2) {
-            cases2_matrice[0] = x-1;
+        if (x > 0 && matrice[x - 1][y] == 2) {
+            cases2_matrice[0] = x - 1;
             cases2_matrice[1] = y;
             adjacent_found = true;
-        }
-        if (x < 9 && matrice[x+1][y] == 2) {
-            cases2_matrice[0] = x+1;
+        } else if (x < TAILLE - 1 && matrice[x + 1][y] == 2) {
+            cases2_matrice[0] = x + 1;
             cases2_matrice[1] = y;
             adjacent_found = true;
-        }
-        if (y > 0 && matrice[x][y-1] == 2) {
+        } else if (y > 0 && matrice[x][y - 1] == 2) {
             cases2_matrice[0] = x;
-            cases2_matrice[1] = y-1;
+            cases2_matrice[1] = y - 1;
             adjacent_found = true;
-        }
-        if (y < 9 && matrice[x][y+1] == 2) {
+        } else if (y < TAILLE - 1 && matrice[x][y + 1] == 2) {
             cases2_matrice[0] = x;
-            cases2_matrice[1] = y+1;
+            cases2_matrice[1] = y + 1;
             adjacent_found = true;
         }
 
         // Générer les tirs en fonction des cases adjacentes trouvées
         if (!adjacent_found) {
-            printf("\nAucune case adjacente détectée, tir aléatoire.");
-            int rand_x = cases_toucher[0];
-            int rand_y = cases_toucher[1];
-            int index = 0;
-
-            // Ajouter les cellules adjacentes valides
-            if (rand_x + 1 < 10 && index < 4) {
-                return_matrice[index][0] = rand_x + 1;
-                return_matrice[index][1] = rand_y;
-                index++;
-            }
-            if (rand_x - 1 >= 0 && index < 4) {
-                return_matrice[index][0] = rand_x - 1;
-                return_matrice[index][1] = rand_y;
-                index++;
-            }
-            if (rand_y + 1 < 10 && index < 4) {
-                return_matrice[index][0] = rand_x;
-                return_matrice[index][1] = rand_y + 1;
-                index++;
-            }
-            if (rand_y - 1 >= 0 && index < 4) {
-                return_matrice[index][0] = rand_x;
-                return_matrice[index][1] = rand_y - 1;
-                index++;
-            }
+            printf("\nAucune case adjacente détectée, tir aléatoire autour de la case touchée.\n");
+            if (ajouter_coordonnees(ai_shoot_m, index++, x + 1, y)) {}
+            if (ajouter_coordonnees(ai_shoot_m, index++, x - 1, y)) {}
+            if (ajouter_coordonnees(ai_shoot_m, index++, x, y + 1)) {}
+            if (ajouter_coordonnees(ai_shoot_m, index++, x, y - 1)) {}
         } else {
-            printf("\nCellule ADJACENTE: (%d, %d)", cases2_matrice[0], cases2_matrice[1]);
-            int index = 0;
-
-            // Alignement horizontal
-            if (cases2_matrice[0] == cases_toucher[0]) {
-                if (cases2_matrice[1] > cases_toucher[1]) {
-                    // Tir à droite
-                    if (y + 1 < 10 && index < 4) {
-                        return_matrice[index][0] = x;
-                        return_matrice[index][1] = y + 1;
-                        index++;
-                    }
-                    if (y + 2 < 10 && index < 4) {
-                        return_matrice[index][0] = x;
-                        return_matrice[index][1] = y + 2;
-                        index++;
-                    }
-                    if (y - 1 >= 0 && index < 4) {
-                        return_matrice[index][0] = x;
-                        return_matrice[index][1] = y - 1;
-                        index++;
-                    }
-                    if (y - 2 >= 0 && index < 4) {
-                        return_matrice[index][0] = x;
-                        return_matrice[index][1] = y - 2;
-                        index++;
-                    }
-                } else {
-                    // Tir à gauche
-                    if (y - 1 >= 0 && index < 4) {
-                        return_matrice[index][0] = x;
-                        return_matrice[index][1] = y - 1;
-                        index++;
-                    }
-                    if (y - 2 >= 0 && index < 4) {
-                        return_matrice[index][0] = x;
-                        return_matrice[index][1] = y - 2;
-                        index++;
-                    }
-                    if (y + 1 < 10 && index < 4) {
-                        return_matrice[index][0] = x;
-                        return_matrice[index][1] = y + 1;
-                        index++;
-                    }
-                    if (y + 2 < 10 && index < 4) {
-                        return_matrice[index][0] = x;
-                        return_matrice[index][1] = y + 2;
-                        index++;
-                    }
-                }
-            }
-            // Alignement vertical
-            else {
-                if (cases2_matrice[0] > cases_toucher[0]) {
-                    // Tir vers le bas
-                    if (x + 1 < 10 && index < 4) {
-                        return_matrice[index][0] = x + 1;
-                        return_matrice[index][1] = y;
-                        index++;
-                    }
-                    if (x + 2 < 10 && index < 4) {
-                        return_matrice[index][0] = x + 2;
-                        return_matrice[index][1] = y;
-                        index++;
-                    }
-                    if (x - 1 >= 0 && index < 4) {
-                        return_matrice[index][0] = x - 1;
-                        return_matrice[index][1] = y;
-                        index++;
-                    }
-                    if (x - 2 >= 0 && index < 4) {
-                        return_matrice[index][0] = x - 2;
-                        return_matrice[index][1] = y;
-                        index++;
-                    }
-                } else {
-                    // Tir vers le haut
-                    if (x - 1 >= 0 && index < 4) {
-                        return_matrice[index][0] = x - 1;
-                        return_matrice[index][1] = y;
-                        index++;
-                    }
-                    if (x - 2 >= 0 && index < 4) {
-                        return_matrice[index][0] = x - 2;
-                        return_matrice[index][1] = y;
-                        index++;
-                    }
-                    if (x + 1 < 10 && index < 4) {
-                        return_matrice[index][0] = x + 1;
-                        return_matrice[index][1] = y;
-                        index++;
-                    }
-                    if (x + 2 < 10 && index < 4) {
-                        return_matrice[index][0] = x + 2;
-                        return_matrice[index][1] = y;
-                        index++;
-                    }
-                }
+            printf("\nCellule ADJACENTE détectée à (%d, %d)", cases2_matrice[0], cases2_matrice[1]);
+            if (cases2_matrice[0] == x) {  // Alignement horizontal
+                if (ajouter_coordonnees(ai_shoot_m, index++, x, y + 1)) {}
+                if (ajouter_coordonnees(ai_shoot_m, index++, x, y - 1)) {}
+            } else {  // Alignement vertical
+                if (ajouter_coordonnees(ai_shoot_m, index++, x + 1, y)) {}
+                if (ajouter_coordonnees(ai_shoot_m, index++, x - 1, y)) {}
             }
         }
     } else {
-        // Tir aléatoire
-        printf("\nAucune cellule touchée détectée, tir aléatoire.");
-        int index = 0;
-        bool added[4] = {false, false, false, false}; // Pour éviter les doublons
-
-        while(index < 4) {
-            int x = rand() % 9;
-            int y = rand() % 9;
+        // Tir aléatoire si aucune cellule touchée n'est détectée
+        printf("\nAucune cellule touchée détectée, tir aléatoire total.\n");
+        while (index < 4) {
+            int rand_x = rand() % TAILLE;
+            int rand_y = rand() % TAILLE;
 
             // Vérifier que la cellule n'a pas déjà été ajoutée
             bool duplicate = false;
-            for(int m = 0; m < index; m++) {
-                if(return_matrice[m][0] == x && return_matrice[m][1] == y) {
+            for (int m = 0; m < index; m++) {
+                if (ai_shoot_m[m][0] == rand_x && ai_shoot_m[m][1] == rand_y) {
                     duplicate = true;
                     break;
                 }
             }
 
-            if(!duplicate) {
-                return_matrice[index][0] = x;
-                return_matrice[index][1] = y;
+            if (!duplicate) {
+                ai_shoot_m[index][0] = rand_x;
+                ai_shoot_m[index][1] = rand_y;
                 index++;
             }
         }
     }
 
-    /*Afficher les coordonnées retournées
-    printf("\nCoordonnées de tir sélectionnées :\n");
-    for(int k = 0; k < 4; k++) {
-        if(return_matrice[k][0] != -1 && return_matrice[k][1] != -1) {
-            printf("(%d, %d) ", return_matrice[k][0], return_matrice[k][1]);
-        }
-    }
-    printf("\n");*/
-
-    return (int**)return_matrice;
+    afficherShooting(ai_shoot_m, index);
 }

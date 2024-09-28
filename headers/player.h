@@ -19,6 +19,7 @@ extern int* player_one_grid[10][10];
 extern int* player_two_grid[10][10];
 extern int* hint_player_one_grid[10][10];
 extern int* hint_player_two_grid[10][10];
+extern int* ai_shoot_m[4][2];
 extern int* who_Played;
 extern Player player_two;
 #endif
