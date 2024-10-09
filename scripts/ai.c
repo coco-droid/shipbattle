@@ -1,124 +1,176 @@
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdio.h>
 #include "../headers/ai.h"
-#include "../headers/player.h"
+#include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 
-
-#define TAILLE 10  // Taille de la matrice (peut être ajustée)
-
-// Prototypes de fonctions (assurez-vous que ces fonctions sont définies dans votre code)
-void afficherShooting(int ai_shoot_m[][2], int size) {
-    printf("\nAffichage des tirs:\n");
+// Fonction pour afficher les tirs
+void afficherShooting(Coordonnees ai_shoot_m[], int size) {
+    printf("\nAffichage des tirs :\n");
     for (int i = 0; i < size; i++) {
-        printf("Tir %d: (%d, %d)\n", i, ai_shoot_m[i][0], ai_shoot_m[i][1]);
+        printf("Tir %d : (%d, %d)\n", i + 1, ai_shoot_m[i].x, ai_shoot_m[i].y);
     }
 }
-// Fonction pour ajouter des coordonnées tout en vérifiant qu'elles ne sont pas répétées
-int ajouter_coordonnees(int ai_shoot_m[][2], int index, int x, int y) {
+
+// Fonction pour ajouter des coordonnées en évitant les répétitions
+bool ajouter_coordonnees(Coordonnees ai_shoot_m[], int *index, int x, int y) {
     // Vérifie si les coordonnées sont valides
-    if (index >= 0 && index < 4 && x >= 0 && x < TAILLE && y >= 0 && y < TAILLE) {
+    if (x >= 0 && x < TAILLE && y >= 0 && y < TAILLE) {
         // Vérifie si les coordonnées ont déjà été ajoutées
-        for (int i = 0; i < index; i++) {
-            if (ai_shoot_m[i][0] == x && ai_shoot_m[i][1] == y) {
-                return 0; // Les coordonnées ont déjà été ajoutées
+        for (int i = 0; i < *index; i++) {
+            if (ai_shoot_m[i].x == x && ai_shoot_m[i].y == y) {
+                return false; // Les coordonnées ont déjà été ajoutées
             }
         }
 
         // Ajoute les nouvelles coordonnées
-        ai_shoot_m[index][0] = x;
-        ai_shoot_m[index][1] = y;
-        return 1; // Indique qu'une coordonnée valide a été ajoutée
+        ai_shoot_m[*index].x = x;
+        ai_shoot_m[*index].y = y;
+        (*index)++;
+        return true; // Indique qu'une coordonnée valide a été ajoutée
     }
-    return 0; // Coordonnée invalide, non ajoutée
+    return false; // Coordonnées invalides, non ajoutées
 }
 
 // Fonction de tir de l'IA
-void pnj_shoot(int matrice[TAILLE][TAILLE]) {
+void pnj_shoot(int matrice[TAILLE][TAILLE], Coordonnees tirs_effectues[], int *nombre_tirs) {
     printf("Début de l'IA de tir.\n");
-    int cases_toucher[2] = {-1, -1}; // Initialisation avec des valeurs impossibles pour la matrice
-    int index = 0;
-    bool soti = false;
+    int index = 0; // Compteur pour le nombre de tirs effectués
+    srand(time(NULL)); // Initialiser le générateur de nombres aléatoires
 
-    // Recherche de la cellule touchée dans la matrice
-    for (int i = 0; i < TAILLE && !soti; i++) {
-        for (int j = 0; j < TAILLE; j++) {
-            if (matrice[i][j] == 2) { // Cellule touchée trouvée
-                soti = true;
-                cases_toucher[0] = i;
-                cases_toucher[1] = j;
-                break;
+    // Recherche de cellules touchées non coulées pour cibler les navires
+    bool cible_trouvee = false;
+    for (int i = 0; i < TAILLE && !cible_trouvee; i++) {
+        for (int j = 0; j < TAILLE && !cible_trouvee; j++) {
+            if (matrice[i][j] == 2) { // Cellule touchée non coulée trouvée
+                printf("IA : J'ai trouvé une partie d'un navire touché en (%d, %d).\n", i, j);
+
+                // Déterminer l'orientation du navire
+                int dx[] = { -1, 1, 0, 0 };
+                int dy[] = { 0, 0, -1, 1 };
+                int orientation = -1; // 0: vertical, 1: horizontal
+
+                // Vérifier si le navire est aligné verticalement ou horizontalement
+                for (int dir = 0; dir < 4; dir++) {
+                    int x = i + dx[dir];
+                    int y = j + dy[dir];
+                    if (x >= 0 && x < TAILLE && y >= 0 && y < TAILLE && matrice[x][y] == 2) {
+                        if (dx[dir] != 0) {
+                            orientation = 0; // Vertical
+                            printf("IA : Le navire semble être orienté verticalement.\n");
+                        } else {
+                            orientation = 1; // Horizontal
+                            printf("IA : Le navire semble être orienté horizontalement.\n");
+                        }
+                        break;
+                    }
+                }
+
+                // Si aucune orientation n'est déterminée, essayer les deux
+                if (orientation == -1) {
+                    printf("IA : Orientation inconnue, je vais tester les deux directions.\n");
+                    orientation = 2; // Inconnu
+                }
+
+                // Tirer en fonction de l'orientation
+                if (orientation == 0 || orientation == 2) { // Vertical ou inconnu
+                    // Vers le haut
+                    int x = i - 1;
+                    while (x >= 0 && matrice[x][j] == 2) {
+                        x--;
+                    }
+                    if (x >= 0 && matrice[x][j] == 0 && index < 4) {
+                        printf("IA : Je vais tirer en (%d, %d) vers le haut.\n", x, j);
+                        ajouter_coordonnees(tirs_effectues, &index, x, j);
+                    }
+
+                    // Vers le bas
+                    x = i + 1;
+                    while (x < TAILLE && matrice[x][j] == 2) {
+                        x++;
+                    }
+                    if (x < TAILLE && matrice[x][j] == 0 && index < 4) {
+                        printf("IA : Je vais tirer en (%d, %d) vers le bas.\n", x, j);
+                        ajouter_coordonnees(tirs_effectues, &index, x, j);
+                    }
+                }
+
+                if (orientation == 1 || orientation == 2) { // Horizontal ou inconnu
+                    // Vers la gauche
+                    int y = j - 1;
+                    while (y >= 0 && matrice[i][y] == 2) {
+                        y--;
+                    }
+                    if (y >= 0 && matrice[i][y] == 0 && index < 4) {
+                        printf("IA : Je vais tirer en (%d, %d) vers la gauche.\n", i, y);
+                        ajouter_coordonnees(tirs_effectues, &index, i, y);
+                    }
+
+                    // Vers la droite
+                    y = j + 1;
+                    while (y < TAILLE && matrice[i][y] == 2) {
+                        y++;
+                    }
+                    if (y < TAILLE && matrice[i][y] == 0 && index < 4) {
+                        printf("IA : Je vais tirer en (%d, %d) vers la droite.\n", i, y);
+                        ajouter_coordonnees(tirs_effectues, &index, i, y);
+                    }
+                }
+
+                cible_trouvee = true;
             }
         }
     }
 
-    if (soti) {
-        printf("\nCellule TOUCHE: (%d, %d)", cases_toucher[0], cases_toucher[1]);
-        int x = cases_toucher[0];
-        int y = cases_toucher[1];
-        int cases2_matrice[2];
-        bool adjacent_found = false;
+    // Si aucune cible spécifique n'est trouvée, mode chasse
+    if (!cible_trouvee) {
+        printf("IA : Aucune cible prioritaire trouvée, je passe en mode chasse.\n");
 
-        // Vérifie les cellules adjacentes
-        if (x > 0 && matrice[x - 1][y] == 2) {
-            cases2_matrice[0] = x - 1;
-            cases2_matrice[1] = y;
-            adjacent_found = true;
-        } else if (x < TAILLE - 1 && matrice[x + 1][y] == 2) {
-            cases2_matrice[0] = x + 1;
-            cases2_matrice[1] = y;
-            adjacent_found = true;
-        } else if (y > 0 && matrice[x][y - 1] == 2) {
-            cases2_matrice[0] = x;
-            cases2_matrice[1] = y - 1;
-            adjacent_found = true;
-        } else if (y < TAILLE - 1 && matrice[x][y + 1] == 2) {
-            cases2_matrice[0] = x;
-            cases2_matrice[1] = y + 1;
-            adjacent_found = true;
-        }
+        // Stratégie de parité pour le mode chasse
+        Coordonnees cellules_possibles[TAILLE * TAILLE];
+        int nb_cellules = 0;
 
-        // Générer les tirs en fonction des cases adjacentes trouvées
-        if (!adjacent_found) {
-            printf("\nAucune case adjacente détectée, tir aléatoire autour de la case touchée.\n");
-            if (ajouter_coordonnees(ai_shoot_m, index++, x + 1, y)) {}
-            if (ajouter_coordonnees(ai_shoot_m, index++, x - 1, y)) {}
-            if (ajouter_coordonnees(ai_shoot_m, index++, x, y + 1)) {}
-            if (ajouter_coordonnees(ai_shoot_m, index++, x, y - 1)) {}
-        } else {
-            printf("\nCellule ADJACENTE détectée à (%d, %d)", cases2_matrice[0], cases2_matrice[1]);
-            if (cases2_matrice[0] == x) {  // Alignement horizontal
-                if (ajouter_coordonnees(ai_shoot_m, index++, x, y + 1)) {}
-                if (ajouter_coordonnees(ai_shoot_m, index++, x, y - 1)) {}
-            } else {  // Alignement vertical
-                if (ajouter_coordonnees(ai_shoot_m, index++, x + 1, y)) {}
-                if (ajouter_coordonnees(ai_shoot_m, index++, x - 1, y)) {}
-            }
-        }
-    } else {
-        // Tir aléatoire si aucune cellule touchée n'est détectée
-        printf("\nAucune cellule touchée détectée, tir aléatoire total.\n");
-        while (index < 4) {
-            int rand_x = rand() % TAILLE;
-            int rand_y = rand() % TAILLE;
-
-            // Vérifier que la cellule n'a pas déjà été ajoutée
-            bool duplicate = false;
-            for (int m = 0; m < index; m++) {
-                if (ai_shoot_m[m][0] == rand_x && ai_shoot_m[m][1] == rand_y) {
-                    duplicate = true;
-                    break;
+        for (int i = 0; i < TAILLE; i++) {
+            for (int j = 0; j < TAILLE; j++) {
+                if (matrice[i][j] == 0) {
+                    // Stratégie de parité
+                    if ((i + j) % 2 == 0) {
+                        cellules_possibles[nb_cellules++] = (Coordonnees){ i, j };
+                    }
                 }
             }
+        }
 
-            if (!duplicate) {
-                ai_shoot_m[index][0] = rand_x;
-                ai_shoot_m[index][1] = rand_y;
-                index++;
+        // Mélanger les cellules possibles
+        for (int i = nb_cellules - 1; i > 0; i--) {
+            int j = rand() % (i + 1);
+            Coordonnees temp = cellules_possibles[i];
+            cellules_possibles[i] = cellules_possibles[j];
+            cellules_possibles[j] = temp;
+        }
+
+        // Ajouter les tirs
+        int idx = 0;
+        while (index < 4 && idx < nb_cellules) {
+            Coordonnees cible = cellules_possibles[idx++];
+            printf("IA : Je vais tirer en (%d, %d) en mode chasse.\n", cible.x, cible.y);
+            ajouter_coordonnees(tirs_effectues, &index, cible.x, cible.y);
+        }
+    }
+
+    // Compléter les tirs restants si nécessaire
+    if (index < 4) {
+        for (int i = 0; i < TAILLE && index < 4; i++) {
+            for (int j = 0; j < TAILLE && index < 4; j++) {
+                if (matrice[i][j] == 0) {
+                    printf("IA : Je vais tirer en (%d, %d) pour compléter mes tirs.\n", i, j);
+                    ajouter_coordonnees(tirs_effectues, &index, i, j);
+                }
             }
         }
     }
 
-    afficherShooting(ai_shoot_m, index);
+    *nombre_tirs = index; // Mettre à jour le nombre de tirs effectués
+
+    // Afficher les tirs effectués
+    afficherShooting(tirs_effectues, *nombre_tirs);
 }

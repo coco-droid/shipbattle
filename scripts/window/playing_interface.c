@@ -61,39 +61,42 @@ int DrawHints(Grid* grid, int hint[10][10]) {
     }
 }
 
-void FireAtCell(int boat_pos[10][10], int hint[10][10], int x, int y)
+void FireAtCell(Player* adversary, int boat_pos[10][10], int hint[10][10], int col, int row)
 {
-    printf("lunched 3");
+    printf("Lancement de FireAtCell.\n");
+    
     // Validation des coordonnées
-    if (x < 0 || x >= 10 || y < 0 || y >= 10) {
-        printf("Coordonnées (%d, %d) hors limites!\n", x, y);
+    if (col < 0 || col >= 10 || row < 0 || row >= 10) {
+        printf("Coordonnées (%d, %d) hors limites!\n", col, row);
         return;
     }
 
-    printf("Tir dans la cellule (%d, %d)\n", x, y);
+    printf("Tir dans la cellule (Ligne: %d, Colonne: %d)\n", row, col);
 
     // Vérifier si la cellule a déjà été tirée
-    if (hint[y][x] != 0) {
+    if (hint[row][col] != 0) {
         printf("Cellule déjà tirée\n");
         return; // Si déjà tirée, on ne fait rien
     }
 
     // Vérifier si un bateau se trouve dans la cellule ciblée
-    if (boat_pos[y][x] != 0) {
+    if (boat_pos[row][col] != 0) {
         // Touché
+        adversary->health -= 1;
         printf("Touché!\n");
-        int boat_id = boat_pos[y][x];  // Identifier le bateau
-        hint[y][x] = 2;  // Marquer comme touché dans la matrice hint
+        printf("Le joueur %s a maintenant %d point(s) de vie.\n", adversary->name, adversary->health);
+        int boat_id = boat_pos[row][col];  // Identifier le bateau
+        hint[row][col] = 2;  // Marquer comme touché dans la matrice hint
 
         // Vérifier si la totalité du bateau est coulée
-        int boat_sunk = 1;
+        bool boat_sunk = true;
 
         // Parcourir l'ensemble de la grille pour vérifier les autres parties du bateau
-        for (int i = 0; i < 10 && boat_sunk; i++) {
-            for (int j = 0; j < 10; j++) {
+        for (int r = 0; r < 10 && boat_sunk; r++) {
+            for (int c = 0; c < 10; c++) {
                 // Si une autre partie du bateau est encore intacte (non touchée), le bateau n'est pas coulé
-                if (boat_pos[j][i] == boat_id && hint[j][i] != 2) {
-                    boat_sunk = 0;
+                if (boat_pos[r][c] == boat_id && hint[r][c] != 2) {
+                    boat_sunk = false;
                     break;
                 }
             }
@@ -102,10 +105,10 @@ void FireAtCell(int boat_pos[10][10], int hint[10][10], int x, int y)
         // Si le bateau est coulé, marquer toutes ses parties comme coulées dans hint
         if (boat_sunk) {
             printf("Bateau coulé!\n");
-            for (int i = 0; i < 10; i++) {
-                for (int j = 0; j < 10; j++) {
-                    if (boat_pos[j][i] == boat_id) {
-                        hint[j][i] = 3;  // Marquer comme coulé
+            for (int r = 0; r < 10; r++) {
+                for (int c = 0; c < 10; c++) {
+                    if (boat_pos[r][c] == boat_id) {
+                        hint[r][c] = 3;  // Marquer comme coulé
                     }
                 }
             }
@@ -114,21 +117,20 @@ void FireAtCell(int boat_pos[10][10], int hint[10][10], int x, int y)
     } else {
         // Manqué
         printf("Manqué!\n");
-        hint[y][x] = 1;  // Marquer comme manqué dans la matrice hint
+        hint[row][col] = 1;  // Marquer comme manqué dans la matrice hint
     }
 
     // Afficher les matrices mises à jour
-    printf("Grille des bateaux:\n");
+    printf("Grille des bateaux :\n");
     afficherMatrice(boat_pos);
-    printf("Grille des tirs:\n");
+    printf("Grille des tirs :\n");
     afficherMatrice(hint);
 }
-
 void FireCallback(){
     printf("fire on a cell");
     // Obtenir les cellules sélectionnées de l'interface utilisateur faire une boucle pour shooter dans les cell
     for (int i = 0; i < num_shots; i++) {
-        FireAtCell(player_two_grid,hint_player_one_grid, selected_cells[i][0], selected_cells[i][1]);
+        FireAtCell(&player_two,player_two_grid,hint_player_one_grid, selected_cells[i][0], selected_cells[i][1]);
     }
     // Réinitialiser les cellules sélectionnées
     num_shots = 0;
@@ -210,7 +212,7 @@ void PlayingInterface(SDL_Window* Window, SDL_Renderer* Renderer) {
     ClearEvents();
      CreateClickableElement(Renderer,200,500,&width,&height, "FIRE!!!", textColor,"medias/images/btn-play.png",FireCallback,12);
     //SDL_RenderPresent(Renderer);
-    while (!quit) {
+    while (!quit || ((player_one.health!=0)||(player_two.health!=0))) {
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
                 case SDL_QUIT:
@@ -300,6 +302,14 @@ void PlayingInterface(SDL_Window* Window, SDL_Renderer* Renderer) {
         SDL_RenderPresent(Renderer);  // Mettre à jour l'affichage
     }
 
+    
     SDL_DestroyTexture(targetTexture);
     SDL_DestroyTexture(backgroundTexture);
+    //fin de jeux
+    if(player_one.health==0){
+        printf("player 2 win");
+    }
+    else{
+        printf("player 1 win");
+    }
 }

@@ -2,10 +2,10 @@
 #include "../headers/player.h"
 Player player_one;
 Player player_two;
-int* player_one_grid[10][10];
-int* player_two_grid[10][10];
-int* hint_player_one_grid[10][10];
-int* hint_player_two_grid[10][10];
+int* player_one_grid[10][10]={0};
+int* player_two_grid[10][10]={0};
+int* hint_player_one_grid[10][10]={0};
+int* hint_player_two_grid[10][10]={0};
 int* ai_shoot_m[4][2];
 int* who_Played=1;
 void initialize_player(struct player* p, const char* name, struct fleet f, const char* type, int id, char ip) {
@@ -16,6 +16,7 @@ void initialize_player(struct player* p, const char* name, struct fleet f, const
     p->type[sizeof(p->type) - 1] = '\0'; // Ensure null-termination
     p->id = id;
     p->ip = ip;
+    p->health=20;
 }
 
 #define GRID_SIZEV 10
