@@ -16,7 +16,7 @@ void initialize_player(struct player* p, const char* name, struct fleet f, const
     p->type[sizeof(p->type) - 1] = '\0'; // Ensure null-termination
     p->id = id;
     p->ip = ip;
-    p->health=20;
+    p->health=17;
 }
 
 #define GRID_SIZEV 10

@@ -67,7 +67,7 @@ void player_two_computer_def() {
     srand(time(NULL));
 
     // Tailles et IDs des bateaux
-    int ship_sizes[] = {5, 4, 3, 3, 2};  // Tailles standards des bateaux
+    int ship_sizes[] = {6, 5, 4, 3, 2};  // Tailles standards des bateaux
     int ship_ids[] = {13, 12, 10, 9, 8}; // IDs des bateaux
 
     // Stratégie : placer les plus grands bateaux en premier

@@ -212,7 +212,7 @@ void PlayingInterface(SDL_Window* Window, SDL_Renderer* Renderer) {
     ClearEvents();
      CreateClickableElement(Renderer,200,500,&width,&height, "FIRE!!!", textColor,"medias/images/btn-play.png",FireCallback,12);
     //SDL_RenderPresent(Renderer);
-    while (!quit || ((player_one.health!=0)||(player_two.health!=0))) {
+    while (!quit && ((player_one.health!=0)&&(player_two.health!=0))) {
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
                 case SDL_QUIT:
