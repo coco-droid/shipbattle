@@ -8,6 +8,7 @@
 #include "libwebsockets.h"
 #include "../../headers/sockets/server.h"
 
+int client_connected=0;
 // Structure pour stocker les données du jeu
 typedef struct {
     int player_matrix[10][10];
@@ -20,6 +21,7 @@ static int callback_game(struct lws *wsi, enum lws_callback_reasons reason,
     switch (reason) {
         case LWS_CALLBACK_ESTABLISHED:
             printf("Client connecté\n");
+            client_connected=1;
             break;
 
         case LWS_CALLBACK_RECEIVE:

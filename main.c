@@ -8,6 +8,7 @@
 #include "headers/log.h"
 #include "headers/window/dialog_1.h"
 #include "headers/window/place_boat.h"
+#include "headers/window/launch_party.h"
 #include "headers/window/named.h"    
 // Define window dimensions
 const int WINDOW_WIDTH = 600;
@@ -77,6 +78,7 @@ int main(int argc, char *argv[]) {
     
     // Show the startup menu
     ShowStartupMenu(first_window,first_renderer);
+    //Launch_party(first_window,first_renderer);
     //Dialog_1(first_window,first_renderer);
     //ShowOption(first_window,first_renderer);
 //ShowPlaceBoat(first_window,first_renderer);

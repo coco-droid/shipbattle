@@ -9,7 +9,7 @@
 #include <stddef.h>
 // Fonction principale pour exécuter le serveur
 int run_server(int port);
-
+extern int client_connected;
 // Prototype du callback pour le serveur WebSocket
 static int callback_game(struct lws *wsi, enum lws_callback_reasons reason,
                          void *user, void *in, size_t len);
