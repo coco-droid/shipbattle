@@ -67,38 +67,70 @@ void player_two_computer_def() {
     srand(time(NULL));
 
     // Tailles et IDs des bateaux
-    int ship_sizes[] = {6, 5, 4, 3, 2};  // Tailles standards des bateaux
+    int ship_sizes[] = {6, 5, 4, 3, 2};  // Tailles des bateaux
     int ship_ids[] = {13, 12, 10, 9, 8}; // IDs des bateaux
 
-    // Stratégie : placer les plus grands bateaux en premier
+    // Pointeurs vers les navires de la flotte
+    Ships* ships[] = {
+        &player_two_fleet.aircraft_carrier,  // Taille 6
+        &player_two_fleet.destroyer,         // Taille 5
+        &player_two_fleet.submarine,         // Taille 4
+        &player_two_fleet.cruiser,           // Taille 3
+        &player_two_fleet.torpedo_boat       // Taille 2
+    };
+
+    // Mélanger l'ordre des navires pour rendre le placement moins prévisible
+    for (int i = 0; i < 5; i++) {
+        int rand_index = rand() % 5;
+        // Échanger les tailles
+        int temp_size = ship_sizes[i];
+        ship_sizes[i] = ship_sizes[rand_index];
+        ship_sizes[rand_index] = temp_size;
+        // Échanger les IDs
+        int temp_id = ship_ids[i];
+        ship_ids[i] = ship_ids[rand_index];
+        ship_ids[rand_index] = temp_id;
+        // Échanger les pointeurs de navire
+        Ships* temp_ship = ships[i];
+        ships[i] = ships[rand_index];
+        ships[rand_index] = temp_ship;
+    }
+
+    // Placement aléatoire des bateaux
     for (int i = 0; i < 5; i++) {
         int placed = 0;
         int attempts = 0;
         while (!placed && attempts < 100) {  // Limite le nombre de tentatives pour éviter une boucle infinie
             int x, y, vertical;
-
-            // Stratégie de placement
-            if (i % 2 == 0) {
-                // Placer les bateaux le long des bords pour les plus grands
-                vertical = rand() % 2;
-                if (vertical) {
-                    x = rand() % (10 - ship_sizes[i]);
-                    y = (rand() % 2) * 9;  // Soit 0 soit 9
-                } else {
-                    x = (rand() % 2) * 9;
-                    y = rand() % (10 - ship_sizes[i]);
-                }
+            vertical = rand() % 2; // Orientation aléatoire
+            if (vertical) {
+                x = rand() % (10 - ship_sizes[i] + 1);
+                y = rand() % 10;
             } else {
-                // Placer les bateaux restants aléatoirement au centre
-                vertical = rand() % 2;
-                x = rand() % (10 - ship_sizes[i]);
-                y = rand() % (10 - ship_sizes[i]);
+                x = rand() % 10;
+                y = rand() % (10 - ship_sizes[i] + 1);
             }
 
             // Vérifier si le bateau peut être placé
             if (no_problem(player_two_grid, x, y, ship_sizes[i], vertical)) {
                 place_ship(player_two_grid, x, y, ship_sizes[i], vertical, ship_ids[i]);
                 placed = 1;  // Bateau placé avec succès
+                // Enregistrer la position et l'orientation du bateau
+                ships[i]->ShipX = x;
+                ships[i]->ShipY = y;
+                ships[i]->horizontal = !vertical;
+                ships[i]->ship_id = ship_ids[i];
+                ships[i]->n_cases = ship_sizes[i];
+                ships[i]->health = ship_sizes[i];
+                // Initialiser le tableau 'cases' du navire si nécessaire
+                memset(ships[i]->cases, 0, sizeof(ships[i]->cases));
+                for (int j = 0; j < ship_sizes[i]; j++) {
+                    if (vertical) {
+                        ships[i]->cases[x + j][y] = 1;
+                    } else {
+                        ships[i]->cases[x][y + j] = 1;
+                    }
+                }
             }
             attempts++;
         }
@@ -106,6 +138,9 @@ void player_two_computer_def() {
             printf("Impossible de placer le bateau de taille %d après %d tentatives.\n", ship_sizes[i], attempts);
         }
     }
+
+    // Mettre à jour la flotte du joueur deux avec les positions des navires
+    player_two.fleet = player_two_fleet;
 }
 
 void player_2_acting() {

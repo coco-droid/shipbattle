@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "../../headers/window/options_play.h"
+#include <time.h>
 #include "../../headers/events.h"
 #include "../../headers/log.h"
 #include "../../headers/player.h"
@@ -16,7 +17,10 @@
 #define MAX_SHOTS 4
 // Variables pour la gestion des tirs
 int selected_cells[MAX_SHOTS][2] = {{-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}};
+Grid radar_grid;
+Grid play_grid;
 int num_shots = 0;
+int score_shots=0;
 void DrawSelectedCells(Grid* grid, int selected_cells[MAX_SHOTS][2], int num_shots, SDL_Texture* targetTexture) {
     // Dessiner chaque cellule sélectionnée
     for (int i = 0; i < num_shots; i++) {
@@ -27,6 +31,247 @@ void DrawSelectedCells(Grid* grid, int selected_cells[MAX_SHOTS][2], int num_sho
         // Assurez-vous que l'alpha est réinitialisé pour être complètement opaque
         SDL_SetTextureAlphaMod(targetTexture, 255);
         SDL_RenderCopy(grid->renderer, targetTexture, NULL, &selectedRect);
+    }
+}
+
+void GoToHomeScreen(){
+     printf("return to home screen");
+}
+void ReplayGame(){
+    printf("replay the game");
+}
+// Fonction pour dessiner le widget de victoire
+void DrawWinWidget(SDL_Window* window, SDL_Renderer* renderer, const char* player_status, const char* winner_name, int num_shots, int num_hits, double duration, int final_score) {
+    // Obtenir les dimensions de la fenêtre
+    int window_width, window_height;
+    SDL_GetWindowSize(window, &window_width, &window_height);
+
+    // Activer le mélange alpha pour la transparence
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+
+    // Définir les dimensions du rectangle principal (60% de la largeur et de la hauteur de la fenêtre)
+    int rect_width = window_width * 0.6;
+    int rect_height = window_height * 0.6;
+    int rect_x = (window_width - rect_width) / 2;
+    int rect_y = (window_height - rect_height) / 2;
+
+    // Choisir la couleur du rectangle en fonction du statut du joueur
+    if (strcmp(player_status, "win") == 0) {
+        // Couleur verte pour la victoire
+        SDL_SetRenderDrawColor(renderer, 0, 128, 0, 200); // Vert semi-transparent
+    } else {
+        // Couleur rouge pour la défaite
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 200); // Rouge semi-transparent
+    }
+
+    SDL_Rect rect = {rect_x, rect_y, rect_width, rect_height};
+    SDL_RenderFillRect(renderer, &rect);
+
+    // Diviser le rectangle en deux parties : gauche et droite
+    int left_rect_width = rect_width / 2;
+    int left_rect_height = rect_height;
+    int left_rect_x = rect_x;
+    int left_rect_y = rect_y;
+    SDL_Rect left_rect = {left_rect_x, left_rect_y, left_rect_width, left_rect_height};
+
+    int right_rect_width = rect_width / 2;
+    int right_rect_height = rect_height;
+    int right_rect_x = rect_x + left_rect_width;
+    int right_rect_y = rect_y;
+    SDL_Rect right_rect = {right_rect_x, right_rect_y, right_rect_width, right_rect_height};
+
+    // Charger et afficher l'image dans la partie gauche
+    SDL_Texture* left_image = NULL;
+    if (strcmp(player_status, "win") == 0) {
+        left_image = IMG_LoadTexture(renderer, "medias/images/dialog_1.jpeg"); // Image pour la victoire
+    } else {
+        left_image = IMG_LoadTexture(renderer, "medias/images/dialog_2.jpeg"); // Image pour la défaite
+    }
+
+    if (left_image) {
+        SDL_RenderCopy(renderer, left_image, NULL, &left_rect);
+    } else {
+        printf("Erreur de chargement de l'image de gauche : %s\n", SDL_GetError());
+    }
+
+    // Initialiser SDL_ttf si ce n'est pas déjà fait
+    if (TTF_WasInit() == 0) {
+        if (TTF_Init() == -1) {
+            printf("Erreur d'initialisation de TTF : %s\n", TTF_GetError());
+            return;
+        }
+    }
+
+    // Charger une police
+    TTF_Font* font = TTF_OpenFont("medias/font/Sora.ttf", 28); // Augmenter la taille de la police
+    if (!font) {
+        printf("Erreur de chargement de la police : %s\n", TTF_GetError());
+        return;
+    }
+
+    // Créer le texte à afficher
+    SDL_Color textColor = {255, 255, 255, 255}; // Couleur blanche
+    char display_text[100];
+
+    if (strcmp(player_status, "win") == 0) {
+        snprintf(display_text, sizeof(display_text), "You Win!");
+    } else {
+        snprintf(display_text, sizeof(display_text), "You Lose!\n%s Wins!", winner_name);
+    }
+
+    // Gérer plusieurs lignes de texte
+    char* line = strtok(display_text, "\n");
+    int line_count = 0;
+    int total_text_height = 0;
+
+    int text_y = right_rect_y + right_rect_height * 0.05; // Commencer à 5% de la hauteur du rectangle droit
+
+    while (line != NULL) {
+        SDL_Surface* textSurface = TTF_RenderText_Blended(font, line, textColor);
+        if (!textSurface) {
+            printf("Erreur de rendu du texte : %s\n", TTF_GetError());
+            TTF_CloseFont(font);
+            return;
+        }
+
+        SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+        SDL_FreeSurface(textSurface);
+
+        int text_width, text_height;
+        SDL_QueryTexture(textTexture, NULL, NULL, &text_width, &text_height);
+
+        SDL_Rect textRect = {
+            right_rect_x + (right_rect_width - text_width) / 2,
+            text_y + line_count * (text_height + 5),
+            text_width,
+            text_height
+        };
+
+        SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+        SDL_DestroyTexture(textTexture);
+
+        total_text_height += text_height + 5;
+        line = strtok(NULL, "\n");
+        line_count++;
+    }
+
+    // Petit rectangle contenant les informations de performance
+    int small_rect_width = right_rect_width * 0.9;
+    int small_rect_height = right_rect_height * 0.25;
+    int small_rect_x = right_rect_x + (right_rect_width - small_rect_width) / 2;
+    int small_rect_y = text_y + total_text_height + 20;
+
+    SDL_Rect small_rect = { small_rect_x, small_rect_y, small_rect_width, small_rect_height };
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 50); // Blanc semi-transparent
+    SDL_RenderFillRect(renderer, &small_rect);
+
+    // Afficher les informations de performance
+    char info_text[4][100];
+    snprintf(info_text[0], sizeof(info_text[0]), "Number of Shots: %d", num_shots);
+    snprintf(info_text[1], sizeof(info_text[1]), "Number of Hits: %d", num_hits);
+    snprintf(info_text[2], sizeof(info_text[2]), "Duration: %.2f seconds", duration);
+    snprintf(info_text[3], sizeof(info_text[3]), "Final Score: %d", final_score);
+
+    // Charger une police pour les infos
+    int info_font_size = 20;
+    TTF_Font* info_font = TTF_OpenFont("medias/font/Sora.ttf", info_font_size);
+    if (!info_font) {
+        printf("Erreur de chargement de la police : %s\n", TTF_GetError());
+        TTF_CloseFont(font);
+        return;
+    }
+
+    SDL_Color infoTextColor = {0, 0, 0, 255}; // Couleur noire
+
+    int info_line_count = 0;
+
+    for (int i = 0; i < 4; i++) {
+        SDL_Surface* textSurface = TTF_RenderText_Blended(info_font, info_text[i], infoTextColor);
+        if (!textSurface) {
+            printf("Erreur de rendu du texte : %s\n", TTF_GetError());
+            TTF_CloseFont(info_font);
+            TTF_CloseFont(font);
+            return;
+        }
+        SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+        SDL_FreeSurface(textSurface);
+
+        int text_width, text_height;
+        SDL_QueryTexture(textTexture, NULL, NULL, &text_width, &text_height);
+
+        SDL_Rect textRect = {
+            small_rect_x + (small_rect_width - text_width) / 2,
+            small_rect_y + info_line_count * (text_height + 5) + 10,
+            text_width,
+            text_height
+        };
+
+        SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+        SDL_DestroyTexture(textTexture);
+
+        info_line_count++;
+    }
+
+    TTF_CloseFont(info_font); // Fermer la police des infos
+
+    // Créer les boutons en utilisant CreateClickableElement
+    int button_width = 200; // Boutons plus grands
+    int button_height = 100;
+
+    int buttons_y = small_rect_y + small_rect_height + 20;
+
+    // Vérifier que les boutons ne sortent pas du rectangle principal
+    if (buttons_y + button_height > right_rect_y + right_rect_height) {
+        buttons_y = right_rect_y + right_rect_height - button_height - 10;
+    }
+
+    int button1_x = right_rect_x + right_rect_width * 0.25 - button_width / 2;
+    int button2_x = right_rect_x + right_rect_width * 0.75 - button_width / 2;
+
+    int w1 = button_width, h1 = button_height;
+    int w2 = button_width, h2 = button_height;
+
+    // Créer les boutons (définissez les fonctions ReplayGame et GoToHomeScreen)
+    SDL_Color buttonTextColor = {255, 255, 255, 255}; // Couleur du texte des boutons
+    int button_font_size = 20;
+
+    CreateClickableElement(renderer, button1_x, buttons_y, &w1, &h1, "Replay", buttonTextColor, "medias/images/btn-play.png", ReplayGame, 10);
+    CreateClickableElement(renderer, button2_x, buttons_y, &w2, &h2, "Home", buttonTextColor, "medias/images/btn-play.png", GoToHomeScreen, 10);
+
+    // Nettoyer
+    TTF_CloseFont(font);
+    if (left_image) SDL_DestroyTexture(left_image);
+
+    // Présenter le rendu
+    SDL_RenderPresent(renderer);
+
+    // Boucle d'événements pour attendre l'action de l'utilisateur
+    SDL_Event event;
+    int waiting = 1;
+    while (waiting) {
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                waiting = 0;
+            }
+            // Gérer les événements pour les boutons
+            else if (event.type == SDL_MOUSEBUTTONDOWN) {
+                int x = event.button.x;
+                int y = event.button.y;
+                // Vérifier si le clic est sur le bouton "Replay"
+                if (x >= button1_x && x <= button1_x + w1 && y >= buttons_y && y <= buttons_y + h1) {
+                    // Appeler la fonction de rappel pour rejouer
+                    ReplayGame(&event);
+                    waiting = 0;
+                }
+                // Vérifier si le clic est sur le bouton "Home"
+                else if (x >= button2_x && x <= button2_x + w2 && y >= buttons_y && y <= buttons_y + h2) {
+                    // Appeler la fonction de rappel pour retourner à l'écran d'accueil
+                    GoToHomeScreen(&event);
+                    waiting = 0;
+                }
+            }
+        }
+        SDL_Delay(100); // Petit délai pour éviter de consommer trop de ressources
     }
 }
 
@@ -125,9 +370,15 @@ void FireAtCell(Player* adversary, int boat_pos[10][10], int hint[10][10], int c
     afficherMatrice(boat_pos);
     printf("Grille des tirs :\n");
     afficherMatrice(hint);
+    DrawHints(&play_grid,hint_player_one_grid);
+    DrawHints(&radar_grid,hint_player_two_grid);
+    // Ajout du délai de 200 millisecondes après chaque exécution
+    //SDL_Delay(400);
 }
 void FireCallback(){
     printf("fire on a cell");
+    score_shots++;
+    if(num_shots==4){
     // Obtenir les cellules sélectionnées de l'interface utilisateur faire une boucle pour shooter dans les cell
     for (int i = 0; i < num_shots; i++) {
         FireAtCell(&player_two,player_two_grid,hint_player_one_grid, selected_cells[i][0], selected_cells[i][1]);
@@ -144,8 +395,14 @@ void FireCallback(){
     //faire jouer le joueur 2
     printf("player 2 plying:");
     player_two_acting();
+    }
+    else{
+        printf("you have to select 4 cells");
+    }
 }
 void PlayingInterface(SDL_Window* Window, SDL_Renderer* Renderer) {
+    time_t start_time, end_time;
+    start_time = time(NULL);
     SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
     //SDL_RenderClear(Renderer);
       int width = 0; 
@@ -164,7 +421,7 @@ void PlayingInterface(SDL_Window* Window, SDL_Renderer* Renderer) {
     Fleet fleet = player_one.fleet;
 
     // Initialisation des grilles
-    Grid play_grid;
+    
     play_grid.renderer = Renderer;
     play_grid.gridWidth = 10;
     play_grid.gridHeight = 10;
@@ -172,7 +429,7 @@ void PlayingInterface(SDL_Window* Window, SDL_Renderer* Renderer) {
     play_grid.xPos = 50;
     play_grid.yPos = 90;
 
-    Grid radar_grid;
+    
     radar_grid.renderer = Renderer;
     radar_grid.gridWidth = 10;
     radar_grid.gridHeight = 10;
@@ -285,6 +542,7 @@ void PlayingInterface(SDL_Window* Window, SDL_Renderer* Renderer) {
         DrawGrid(&play_grid);
         DrawGrid(&radar_grid);
         DrawFleet(&radar_grid,&fleet);
+       // DrawFleet(&play_grid,&player_two.fleet);
         DrawHints(&play_grid,hint_player_one_grid);
         DrawHints(&radar_grid,hint_player_two_grid);
         // Dessiner la "target" qui suit la souris dans la grille
@@ -305,11 +563,19 @@ void PlayingInterface(SDL_Window* Window, SDL_Renderer* Renderer) {
     
     SDL_DestroyTexture(targetTexture);
     SDL_DestroyTexture(backgroundTexture);
+    end_time = time(NULL);
+    double duration = difftime(end_time, start_time);
+    int failed_shots=score_shots-20;//failed shots 
+    //calculate score with the duration the number of shoots"score_shots" and the number of failed shoot
+    int final_score = (int)(1000 / (duration + 1) * (score_shots - 20)); 
     //fin de jeux
-    if(player_one.health==0){
-        printf("player 2 win");
-    }
-    else{
-        printf("player 1 win");
-    }
+ if (player_one.health == 0) {
+    // Le joueur un a perdu
+    DrawWinWidget(Window, Renderer, "lose",player_two.name,score_shots,20,duration,final_score);
+} else if (player_two.health == 0) {
+    // Le joueur un a gagné
+    DrawWinWidget(Window, Renderer, "win",player_one.name,score_shots,20,duration,final_score);
+}
+
+
 }
