@@ -163,21 +163,3 @@ int run_client(const char *ip_hote, int port) {
     lws_context_destroy(context);
     return 0;
 }
-/*
-int main(int argc, char **argv) {
-    if (argc != 3) {
-        fprintf(stderr, "Usage: %s <IP_Hote> <Port>\n", argv[0]);
-        return -1;
-    }
-
-    const char *ip_hote = argv[1];
-    int port = atoi(argv[2]);
-
-    if (run_client(ip_hote, port) != 0) {
-        fprintf(stderr, "Erreur lors de l'exécution du client.\n");
-        return -1;
-    }
-
-    return 0;
-}
-*/
