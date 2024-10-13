@@ -32,7 +32,7 @@ void PlayGame() {
     printf("ShipX: %d\n", myfleet.destroyer.ShipX);
     printf("Name: %s\n", player_one.name);
     printf("Health: %d\n", player_one.health);
-    OpenPlayWindow(first_window, first_renderer, &second_window, &second_renderer);
+    OpenPlayWindow(first_window,first_renderer, &second_window, &second_renderer);
     PlayingInterface(second_window, second_renderer);
 }
 

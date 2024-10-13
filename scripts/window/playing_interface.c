@@ -10,6 +10,8 @@
 #include "../../headers/player.h"
 #include "../../headers/logics.h"
 #include "../../headers/window/place_boat.h"
+#include "../../headers/window/startup.h"
+#include "../../headers/computer_mode.h"
 #include "../../headers/graphics.h"
 #include "../../headers/damier.h"
 #include "../../headers/computer_mode.h"
@@ -21,6 +23,7 @@ Grid radar_grid;
 Grid play_grid;
 int num_shots = 0;
 int score_shots=0;
+
 void DrawSelectedCells(Grid* grid, int selected_cells[MAX_SHOTS][2], int num_shots, SDL_Texture* targetTexture) {
     // Dessiner chaque cellule sélectionnée
     for (int i = 0; i < num_shots; i++) {
@@ -34,11 +37,31 @@ void DrawSelectedCells(Grid* grid, int selected_cells[MAX_SHOTS][2], int num_sho
     }
 }
 
+void DrawFilledCircle(SDL_Renderer* renderer, int centerX, int centerY, int radius) {
+    for (int w = 0; w < radius * 2; w++) {
+        for (int h = 0; h < radius * 2; h++) {
+            int dx = radius - w; // Décalage horizontal
+            int dy = radius - h; // Décalage vertical
+            if ((dx*dx + dy*dy) <= (radius * radius)) {
+                SDL_RenderDrawPoint(renderer, centerX + dx, centerY + dy);
+            }
+        }
+    }
+}
 void GoToHomeScreen(){
      printf("return to home screen");
+     OpenMenuWindow(second_window,second_renderer,&first_window,&first_renderer);
+     ShowStartupMenu(first_window,first_renderer);
+     
 }
 void ReplayGame(){
     printf("replay the game");
+    memset(hint_player_one_grid, 0, sizeof(hint_player_one_grid));
+    memset(hint_player_two_grid, 0, sizeof(hint_player_two_grid));
+    memset(player_one_grid, 0, sizeof(player_one_grid));
+    memset(player_two_grid, 0, sizeof(player_two_grid));
+    OpenMenuWindow(second_window,second_renderer,&first_window,&first_renderer);
+    Computer_mode(first_window,first_renderer);
 }
 // Fonction pour dessiner le widget de victoire
 void DrawWinWidget(SDL_Window* window, SDL_Renderer* renderer, const char* player_status, const char* winner_name, int num_shots, int num_hits, double duration, int final_score) {
@@ -275,37 +298,42 @@ void DrawWinWidget(SDL_Window* window, SDL_Renderer* renderer, const char* playe
     }
 }
 
-int DrawHints(Grid* grid, int hint[10][10]) {
-    // Limitez les itérations à la taille minimale entre la grille et la matrice de hints
+void DrawHints(Grid* grid, int hint[10][10]) {
+    // Limiter les itérations à la taille minimale entre la grille et la matrice de hints
     int maxWidth = (grid->gridWidth < 10) ? grid->gridWidth : 10;
     int maxHeight = (grid->gridHeight < 10) ? grid->gridHeight : 10;
 
+    // Définir le rayon des cercles (ajustable selon la taille des cellules)
+    int radius = grid->cellSize / 4;
+
     for (int j = 0; j < maxHeight; j++) { // Itération sur les lignes (axe Y)
         for (int i = 0; i < maxWidth; i++) { // Itération sur les colonnes (axe X)
-            SDL_Rect cellRect = {
-                grid->xPos + i * grid->cellSize,
-                grid->yPos + j * grid->cellSize,
-                grid->cellSize,
-                grid->cellSize
-            };
+            // Calculer le centre de la cellule
+            int centerX = grid->xPos + i * grid->cellSize + grid->cellSize / 2;
+            int centerY = grid->yPos + j * grid->cellSize + grid->cellSize / 2;
 
-            if (hint[j][i] == 2) { // Accès corrigé : hint[y][x]
-                SDL_SetRenderDrawColor(grid->renderer, 255, 0, 0, 255);  // Rouge pour un touché
-                SDL_RenderFillRect(grid->renderer, &cellRect);
-            } else if (hint[j][i] == 1) { // Accès corrigé : hint[y][x]
-                SDL_SetRenderDrawColor(grid->renderer, 0, 0, 255, 255);  // Bleu pour un raté
-                SDL_RenderFillRect(grid->renderer, &cellRect);
+            // Déterminer la couleur en fonction de l'état du hint
+            if (hint[j][i] == 1) { // Tiré sur une cellule vide
+                SDL_SetRenderDrawColor(grid->renderer, 255, 0, 0, 255);  // Rouge
             }
-            else if(hint[j][i]== 3){
-                SDL_SetRenderDrawColor(grid->renderer, 0, 0, 0, 255);  // Noir pour une case non touchée
-                SDL_RenderFillRect(grid->renderer, &cellRect);
+            else if (hint[j][i] == 2) { // Touché un bateau
+                SDL_SetRenderDrawColor(grid->renderer, 0, 255, 0, 255);  // Vert
             }
-            // Optionnel : Réinitialiser la couleur après le dessin
-            SDL_SetRenderDrawColor(grid->renderer, 255, 255, 255, 255); // Blanc par défaut
+            else if (hint[j][i] == 3) { // Bateau coulé
+                SDL_SetRenderDrawColor(grid->renderer, 0, 0, 0, 255);    // Noir
+            }
+            else { // État non défini ou autre (aucun tir)
+                continue; // Ne rien dessiner pour les cellules non touchées
+            }
+
+            // Dessiner le cercle rempli
+            DrawFilledCircle(grid->renderer, centerX, centerY, radius);
         }
     }
-}
 
+    // Optionnel : Réinitialiser la couleur après le dessin
+    SDL_SetRenderDrawColor(grid->renderer, 255, 255, 255, 255); // Blanc par défaut
+}
 void FireAtCell(Player* adversary, int boat_pos[10][10], int hint[10][10], int col, int row)
 {
     printf("Lancement de FireAtCell.\n");

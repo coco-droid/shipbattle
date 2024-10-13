@@ -77,6 +77,48 @@ void OpenPlayWindow(SDL_Window* window1, SDL_Renderer* renderer1, SDL_Window** w
     bool running = true;
 }
 
+void OpenMenuWindow(SDL_Window* window1, SDL_Renderer* renderer1, SDL_Window** window2, SDL_Renderer** renderer2) {
+    // Fermer la première fenêtre et le premier renderer
+    SDL_DestroyRenderer(renderer1);
+    SDL_DestroyWindow(window1);
+
+    // Créer la nouvelle fenêtre
+    *window2 = CreateRoundedWindow("Rounded Corner Window",
+                                             SDL_WINDOWPOS_UNDEFINED,
+                                             SDL_WINDOWPOS_UNDEFINED,
+                                             600,
+                                             600,
+                                             SDL_WINDOW_BORDERLESS | SDL_WINDOW_ALWAYS_ON_TOP);
+
+    if (!*window2) {
+        SDL_Log("Erreur de création de la fenêtre : %s\n", SDL_GetError());
+        SDL_Quit();
+        return;
+    }
+
+    // Créer le nouveau renderer
+    *renderer2 = SDL_CreateRenderer(*window2, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    if (!*renderer2) {
+        SDL_Log("Erreur de création du renderer : %s\n", SDL_GetError());
+        SDL_DestroyWindow(*window2);
+        SDL_Quit();
+        return;
+    }
+
+    // Définir la couleur de dessin sur noir (r, g, b, a) -> (0, 0, 0, 255)
+    SDL_SetRenderDrawColor(*renderer2, 0, 0, 0, 255);
+
+    // Effacer l'écran avec la couleur définie (noir)
+    SDL_RenderClear(*renderer2);
+
+    // Présenter le rendu (mettre à jour l'écran)
+    SDL_RenderPresent(*renderer2);
+
+    // Boucle d'événements pour maintenir la fenêtre ouverte
+    bool running = true;
+}
+
+
 void CreateClickableElement(SDL_Renderer* renderer, int x, int y, int* w, int* h, const char* text, SDL_Color textColor, const char* imagePath, EventCallback callback, int fontSize) {
     // Load background image if provided
     InitLogFile("logs.txt");
