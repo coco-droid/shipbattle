@@ -15,7 +15,7 @@
 
 SDL_Texture *shipTexture = NULL;
 static Grid main_grid; // Grille principale accessible globalement
-
+bool shuffled=true;
 // Fonction pour charger une texture depuis un fichier
 SDL_Texture* loadTexture(const char *file, SDL_Renderer *renderer) {
     SDL_Texture *texture = IMG_LoadTexture(renderer, file);
@@ -256,6 +256,7 @@ void RotateShip(Grid *grid, Ships *ship, Fleet *fleet) {
 
 // Fonction pour randomiser la position des bateaux (bouton Shuffle)
 void ShuffleShips() {
+    shuffled=false;
     Fleet *fleet = &player_one.fleet;
 
     // Réinitialiser la grille
@@ -374,8 +375,14 @@ void ShowPlaceBoat(SDL_Window* window, SDL_Renderer* renderer) {
     memset(player_one_grid, 0, sizeof(player_one_grid));
 
     // Placer aléatoirement les bateaux
+    if(shuffled){
     ShuffleShips();
-
+    }
+    else
+    {
+        printf("glich detected");
+    }
+    
     // Boucle principale des événements
     bool running = true;
     SDL_Event event;
@@ -388,7 +395,7 @@ void ShowPlaceBoat(SDL_Window* window, SDL_Renderer* renderer) {
 
     // Création des boutons Play et Shuffle
     CreateClickableElement(renderer, 214, 520, &width, &height, "Play", textColor, "medias/images/btn-play.png", PlayGame, 12);
-    CreateClickableElement(renderer, 414, 520, &width, &height, "Shuffle", textColor, "medias/images/btn-shuffle.png", ShuffleShips, 12);
+    CreateClickableElement(renderer, 414, 520, &width, &height, "Shuffle", textColor, "medias/images/btn-play.png", ShuffleShips, 12);
 
     while (running) {
         while (SDL_PollEvent(&event)) {
