@@ -6,6 +6,7 @@
 #include <windows.h>
 #include <cjson/cJSON.h> 
 #include "libwebsockets.h"
+#include "../../headers/sockets/p2p.h"
 #include "../../headers/sockets/server.h"
 
 int client_connected=0;
@@ -17,33 +18,25 @@ typedef struct {
 
 // Callback pour le serveur
 static int callback_game(struct lws *wsi, enum lws_callback_reasons reason,
-                        void *user, void *in, size_t len) {
+                         void *user, void *in, size_t len) {
     switch (reason) {
         case LWS_CALLBACK_ESTABLISHED:
             printf("Client connecté\n");
-            client_connected=1;
+            client_connected = 1;
+
+            // Send server's player name to the client
+            {
+                cJSON *data = cJSON_CreateObject();
+                cJSON_AddStringToObject(data, "name", "ServerPlayerName"); // Replace with actual name
+                p2p_emit(wsi, "player_name", data);
+                // 'data' is freed by p2p_emit
+            }
             break;
 
         case LWS_CALLBACK_RECEIVE:
             printf("Données reçues : %.*s\n", (int)len, (char *)in);
-            // Désérialiser la matrice reçue
-            {
-                int received_matrix[10][10];
-                if (deserialize_matrix((char *)in, received_matrix) == 0) {
-                    // Traitez la matrice reçue
-                    printf("Matrice reçue :\n");
-                    for (int i = 0; i < 10; i++) {
-                        for (int j = 0; j < 10; j++) {
-                            printf("%d ", received_matrix[i][j]);
-                        }
-                        printf("\n");
-                    }
-
-                    // Exemple : Echo de la matrice au client
-                    // Vous pouvez intégrer la logique de jeu ici
-                    // send_matrix(wsi, received_matrix);
-                }
-            }
+            // Use p2p to handle the message
+            p2p_handle_received_message(wsi, (char *)in, len);
             break;
 
         case LWS_CALLBACK_CLOSED:
@@ -78,6 +71,9 @@ int run_server(int port) {
     info.uid = -1;
     info.options = 0;
 
+    // Register handlers
+    register_server_handlers();
+
     struct lws_context *context = lws_create_context(&info);
     if (context == NULL) {
         fprintf(stderr, "Erreur lors de la création du contexte WebSocket\n");
@@ -93,4 +89,3 @@ int run_server(int port) {
     lws_context_destroy(context);
     return 0;
 }
-

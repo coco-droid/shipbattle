@@ -6,7 +6,7 @@
 #include <windows.h>
 #include <cjson/cJSON.h> 
 #include "libwebsockets.h"
-
+#include "../../headers/sockets/p2p.h"
 // Prototypes
 char* serialize_matrix(int matrix[10][10]);
 int deserialize_matrix(const char *json_str, int matrix[10][10]);
@@ -19,53 +19,23 @@ typedef struct {
 
 // Callback pour le client
 static int callback_client(struct lws *wsi, enum lws_callback_reasons reason,
-                          void *user, void *in, size_t len) {
+                           void *user, void *in, size_t len) {
     switch (reason) {
         case LWS_CALLBACK_CLIENT_ESTABLISHED:
             printf("Connecté au serveur\n");
-            // Envoyer une matrice initiale
+
+            // Send client's player name to the server
             {
-                int initial_matrix[10][10] = {0}; // Exemple de matrice initiale
-                initial_matrix[0][0] = 1; // Exemple de modification
-                char *json_str = serialize_matrix(initial_matrix);
-                if (json_str) {
-                    // Préparation du buffer
-                    int msg_len = strlen(json_str);
-                    unsigned char *buf = malloc(LWS_SEND_BUFFER_PRE_PADDING + msg_len + LWS_SEND_BUFFER_POST_PADDING);
-                    if (!buf) {
-                        fprintf(stderr, "Erreur d'allocation de mémoire pour le buffer\n");
-                        free(json_str);
-                        break;
-                    }
-
-                    memcpy(&buf[LWS_SEND_BUFFER_PRE_PADDING], json_str, msg_len);
-                    int ret = lws_write(wsi, &buf[LWS_SEND_BUFFER_PRE_PADDING], msg_len, LWS_WRITE_TEXT);
-                    if (ret < msg_len) {
-                        fprintf(stderr, "Erreur lors de l'envoi du message\n");
-                    }
-
-                    free(buf);
-                    free(json_str);
-                }
+                cJSON *data = cJSON_CreateObject();
+                cJSON_AddStringToObject(data, "name", "ClientPlayerName"); // Replace with actual name
+                p2p_emit(wsi, "player_name", data);
             }
             break;
 
         case LWS_CALLBACK_CLIENT_RECEIVE:
             printf("Données reçues du serveur : %.*s\n", (int)len, (char *)in);
-            // Désérialiser la matrice reçue
-            {
-                int received_matrix[10][10];
-                if (deserialize_matrix((char *)in, received_matrix) == 0) {
-                    // Traitez la matrice reçue
-                    printf("Matrice reçue :\n");
-                    for (int i = 0; i < 10; i++) {
-                        for (int j = 0; j < 10; j++) {
-                            printf("%d ", received_matrix[i][j]);
-                        }
-                        printf("\n");
-                    }
-                }
-            }
+            // Use p2p to handle the message
+            p2p_handle_received_message(wsi, (char *)in, len);
             break;
 
         case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
@@ -81,6 +51,7 @@ static int callback_client(struct lws *wsi, enum lws_callback_reasons reason,
     }
     return 0;
 }
+
 
 // Protocoles supportés
 static struct lws_protocols protocols[] = {
@@ -130,6 +101,9 @@ int run_client(const char *ip_hote, int port) {
     info.gid = -1;
     info.uid = -1;
     info.options = 0;
+
+    // Register handlers
+    register_client_handlers();
 
     struct lws_context *context = lws_create_context(&info);
     if (context == NULL) {

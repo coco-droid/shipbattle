@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <cjson/cJSON.h> 
+#include "../../headers/sockets/json_utils.h"
 #include "../../headers/ships.h"
 #include "../../headers/fleet.h"
 // Fonction pour sérialiser une matrice en JSON
@@ -55,6 +56,7 @@ int deserialize_matrix(const char *json_str, int matrix[10][10]) {
 }
 
 // Fonction pour désérialiser une chaîne JSON en structure Ships
+
 int deserialize_ships(const char *json_str, Ships *ship) {
     cJSON *json_ship = cJSON_Parse(json_str);
     if (!json_ship) {
