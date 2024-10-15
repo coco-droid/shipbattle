@@ -9,21 +9,29 @@
 #include <stdio.h>
 #include "../../headers/log.h"
 #include "../../headers/window/options_play.h"
+#include "../../headers/window/dialog_3_usa.h"
+#include "../../headers/player.h"
+#include "../../headers/window/dialog_3_russe.h"
 #include <string.h>
 void BeforeCallbackD2(SDL_Event *event) {
     InitLogFile("logs.txt");
     if (event->type == SDL_MOUSEBUTTONDOWN) {
         LogMessage("Button 1 clicked!\n");
-        ShowStartupMenu(first_window,first_renderer);
         ClearEvents();
+        Dialog_1(first_window,first_renderer);
     }
 }
 
 void AfterCallbackD2(SDL_Event *event) {
     InitLogFile("logs.txt");
-    if (event->type == SDL_MOUSEBUTTONDOWN) {
         LogMessage("Button 2 clicked!\n");
-        Dialog_1(first_window,first_renderer);
+        ClearEvents();
+        if (strcmp(player_one.fleet.name, "American Fleet") == 0) {
+             
+              Dialog_3_usa(first_window,first_renderer);
+    } else {
+        printf("Initialisation de la flotte américaine\n");
+        Dialog_3_russia(first_window,first_renderer);
     }
 }
 
@@ -79,7 +87,7 @@ void Dialog_2(SDL_Window* window, SDL_Renderer* renderer) {
         char* text = load_text(filename, language);
         // Render Lorem Ipsum text on the second image
         SDL_Color textColor = {255, 255, 255, 255};  // White text color
-        RenderText(renderer,"Commander, battle is inevitable. Lead our fleet with precision and strength. The eyes of the world are upon us. Engage the enemy and secure victory.", image2Rect.x + 10, image2Rect.y + 10, textColor, 16, image2Rect.w - 20);
+        RenderText(renderer,"Advanced technologies and strategic prowess define the ongoing standoff. Underneath the calm surface of the ocean, both fleets engage in a silent battle of intelligence, surveillance, and tactical maneuvers. Every decision you make could tip the balance of power and determine the fate of global maritime trade", image2Rect.x + 10, image2Rect.y + 10, textColor, 16, image2Rect.w - 20);
 
         SDL_DestroyTexture(image2Texture);
 

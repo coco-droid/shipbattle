@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Create a window with rounded corners
-    first_window = CreateRoundedWindow("Rounded Corner Window",
+    first_window = CreateRoundedWindow("BattleShip",
                                              SDL_WINDOWPOS_UNDEFINED,
                                              SDL_WINDOWPOS_UNDEFINED,
                                              WINDOW_WIDTH,

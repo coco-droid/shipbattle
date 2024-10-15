@@ -12,6 +12,7 @@
 #include "../../headers/log.h"
 #include "../../headers/window/place_boat.h"
 #include "../../headers/logics.h"
+#include "../../headers/window/dialog_1.h"
 #include "../../headers/graphics.h"
 #include <stdio.h>
 void BeforeChooseFleet(SDL_Event *event) {
@@ -40,7 +41,7 @@ void USA_fleet(SDL_Event *event)
         printf("AI matrices:\n");
         afficherMatrice(player_two_grid);
         ClearEvents();
-         ShowPlaceBoat(first_window,first_renderer);
+        Dialog_1(first_window,first_renderer);
     }
 }
 void Russian_fleet(SDL_Event *event) {
@@ -60,7 +61,7 @@ void Russian_fleet(SDL_Event *event) {
         printf("AI matrices:\n");
         afficherMatrice(player_two_grid);
         ClearEvents();
-         ShowPlaceBoat(first_window,first_renderer);
+        Dialog_1(first_window,first_renderer);
     }
 }
 void CloseChooseFleet(SDL_Event *event) {

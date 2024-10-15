@@ -21,6 +21,7 @@ void BeforeCallback1(SDL_Event *event) {
 void AfterCallback1(SDL_Event *event) {
     InitLogFile("logs.txt");
     if (event->type == SDL_MOUSEBUTTONDOWN) {
+        ClearEvents();
         Dialog_2(first_window,first_renderer);
         LogMessage("Button 2 clicked!\n");
     }
@@ -74,7 +75,7 @@ void Dialog_1(SDL_Window* window, SDL_Renderer* renderer) {
         char* text = load_text(filename, language);
         // Render Lorem Ipsum text on the second image
         SDL_Color textColor = {255, 255, 255, 255};  // White text color
-        RenderText(renderer,"Commander, battle is inevitable. Lead our fleet with precision and strength. The eyes of the world are upon us. Engage the enemy and secure victory.", image2Rect.x + 10, image2Rect.y + 10, textColor, 16, image2Rect.w - 20);
+        RenderText(renderer,"In the year 2025, tensions between the United States and Russia have reached a boiling point. The two superpowers are vying for control over strategic maritime routes in the Pacific Ocean. At the center of this conflict is you, a young officer in the American fleet, tasked with undertaking critical missions to ensure your nation's maritime supremacy", image2Rect.x + 10, image2Rect.y + 10, textColor, 16, image2Rect.w - 20);
 
         SDL_DestroyTexture(image2Texture);
 

@@ -300,7 +300,7 @@ void DrawWinWidget(SDL_Window* window, SDL_Renderer* renderer, const char* playe
     }
 }
 
-void DrawHints(Grid* grid, int hint[10][10]) {
+int DrawHints(Grid* grid, int hint[10][10], int isRefresh) {
     // Limiter les itérations à la taille minimale entre la grille et la matrice de hints
     int maxWidth = (grid->gridWidth < 10) ? grid->gridWidth : 10;
     int maxHeight = (grid->gridHeight < 10) ? grid->gridHeight : 10;
@@ -308,6 +308,7 @@ void DrawHints(Grid* grid, int hint[10][10]) {
     // Définir le rayon des cercles (ajustable selon la taille des cellules)
     int radius = grid->cellSize / 4;
 
+    // Parcourir chaque cellule pour dessiner les hints
     for (int j = 0; j < maxHeight; j++) { // Itération sur les lignes (axe Y)
         for (int i = 0; i < maxWidth; i++) { // Itération sur les colonnes (axe X)
             // Calculer le centre de la cellule
@@ -317,24 +318,59 @@ void DrawHints(Grid* grid, int hint[10][10]) {
             // Déterminer la couleur en fonction de l'état du hint
             if (hint[j][i] == 1) { // Tiré sur une cellule vide
                 SDL_SetRenderDrawColor(grid->renderer, 255, 0, 0, 255);  // Rouge
+                // TODO: Ajouter un son pour un tir manqué
+                // Exemple : PlaySound("miss.wav");
             }
             else if (hint[j][i] == 2) { // Touché un bateau
                 SDL_SetRenderDrawColor(grid->renderer, 0, 255, 0, 255);  // Vert
+                // TODO: Ajouter un son pour un tir réussi
             }
             else if (hint[j][i] == 3) { // Bateau coulé
                 SDL_SetRenderDrawColor(grid->renderer, 0, 0, 0, 255);    // Noir
+                // TODO: Ajouter un son pour un bateau coulé
             }
             else { // État non défini ou autre (aucun tir)
                 continue; // Ne rien dessiner pour les cellules non touchées
             }
 
-            // Dessiner le cercle rempli
-            DrawFilledCircle(grid->renderer, centerX, centerY, radius);
+            if (!isRefresh) {
+                // Mode animation progressive avec sons
+                // Dessiner le cercle rempli
+                DrawFilledCircle(grid->renderer, centerX, centerY, radius);
+                SDL_RenderPresent(grid->renderer); // Mettre à jour l'affichage
+
+                // Ajouter les effets sonores spécifiques
+                if (hint[j][i] == 1) {
+                    // Tir manqué
+                    create_effect(second_window,second_renderer, 4);
+                }
+                else if (hint[j][i] == 2) {
+                    // Tir réussi (ex. explosion)
+                    create_effect(second_window,second_renderer, 1);
+                }
+                else if (hint[j][i] == 3) {
+                    // Bateau coulé
+                    // Ajoutez ici l'effet sonore pour un bateau coulé si nécessaire
+                    // create_effect(first_window, first_renderer, X); // Remplacez X par le code approprié
+                }
+
+                // Petit délai pour l'animation (ajustez selon les besoins)
+                SDL_Delay(200); // 200 millisecondes
+            }
+            else {
+                // Mode rafraîchissement sans animation ni sons
+                // Dessiner le cercle rempli directement
+                DrawFilledCircle(grid->renderer, centerX, centerY, radius);
+            }
         }
     }
 
     // Optionnel : Réinitialiser la couleur après le dessin
     SDL_SetRenderDrawColor(grid->renderer, 255, 255, 255, 255); // Blanc par défaut
+    SDL_RenderPresent(grid->renderer); // Mettre à jour l'affichage
+
+    // Retourner 1 si c'était un rafraîchissement, 0 sinon
+    return isRefresh ? 1 : 0;
 }
 void FireAtCell(Player* adversary, int boat_pos[10][10], int hint[10][10], int col, int row)
 {
@@ -400,10 +436,8 @@ void FireAtCell(Player* adversary, int boat_pos[10][10], int hint[10][10], int c
     afficherMatrice(boat_pos);
     printf("Grille des tirs :\n");
     afficherMatrice(hint);
-    DrawHints(&play_grid,hint_player_one_grid);
-    DrawHints(&radar_grid,hint_player_two_grid);
     // Ajout du délai de 200 millisecondes après chaque exécution
-    //SDL_Delay(400);
+    SDL_Delay(400);
 }
 void FireCallback(){
     printf("fire on a cell");
@@ -423,6 +457,9 @@ void FireCallback(){
     //change who_Played
     //*who_Played=2;
     //faire jouer le joueur 2
+    if(DrawHints(&play_grid, hint_player_one_grid,0)){
+        printf("with animations");
+    }
     printf("player 2 plying:");
     player_two_acting();
     }
@@ -576,8 +613,8 @@ void PlayingInterface(SDL_Window* Window, SDL_Renderer* Renderer) {
         DrawGrid(&radar_grid);
         DrawFleet(&radar_grid,&fleet);
        // DrawFleet(&play_grid,&player_two.fleet);
-        DrawHints(&play_grid,hint_player_one_grid);
-        DrawHints(&radar_grid,hint_player_two_grid);
+        DrawHints(&play_grid,hint_player_one_grid,1);
+        DrawHints(&radar_grid,hint_player_two_grid,1);
         // Dessiner la "target" qui suit la souris dans la grille
         if (highlight_x != -1 && highlight_y != -1) {
             SDL_Rect targetRect = {play_grid.xPos + highlight_x * play_grid.cellSize, 

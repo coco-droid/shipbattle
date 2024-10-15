@@ -42,7 +42,7 @@ void OpenPlayWindow(SDL_Window* window1, SDL_Renderer* renderer1, SDL_Window** w
     SDL_DestroyWindow(window1);
 
     // Créer la nouvelle fenêtre
-    *window2 = CreateRoundedWindow("Rounded Corner Window",
+    *window2 = CreateRoundedWindow("BattleShip",
                                              SDL_WINDOWPOS_UNDEFINED,
                                              SDL_WINDOWPOS_UNDEFINED,
                                              870,
@@ -69,7 +69,14 @@ void OpenPlayWindow(SDL_Window* window1, SDL_Renderer* renderer1, SDL_Window** w
 
     // Effacer l'écran avec la couleur définie (noir)
     SDL_RenderClear(*renderer2);
-
+     SDL_Surface* iconSurface = IMG_Load("medias/images/logo.bmp");
+    if (!iconSurface) {
+        printf("Erreur de chargement de l'icône: %s\n", IMG_GetError());
+    } else {
+        // Définir l'icône de la fenêtre
+        SDL_SetWindowIcon(second_window, iconSurface);
+        SDL_FreeSurface(iconSurface); // Libérer la surface après utilisation
+    }
     // Présenter le rendu (mettre à jour l'écran)
     SDL_RenderPresent(*renderer2);
 
@@ -83,7 +90,7 @@ void OpenMenuWindow(SDL_Window* window1, SDL_Renderer* renderer1, SDL_Window** w
     SDL_DestroyWindow(window1);
 
     // Créer la nouvelle fenêtre
-    *window2 = CreateRoundedWindow("Rounded Corner Window",
+    *window2 = CreateRoundedWindow("BattleShip",
                                              SDL_WINDOWPOS_UNDEFINED,
                                              SDL_WINDOWPOS_UNDEFINED,
                                              600,
@@ -110,15 +117,20 @@ void OpenMenuWindow(SDL_Window* window1, SDL_Renderer* renderer1, SDL_Window** w
 
     // Effacer l'écran avec la couleur définie (noir)
     SDL_RenderClear(*renderer2);
-
+     SDL_Surface* iconSurface = IMG_Load("medias/images/logo.bmp");
+    if (!iconSurface) {
+        printf("Erreur de chargement de l'icône: %s\n", IMG_GetError());
+    } else {
+        // Définir l'icône de la fenêtre
+        SDL_SetWindowIcon(first_window, iconSurface);
+        SDL_FreeSurface(iconSurface); // Libérer la surface après utilisation
+    }
     // Présenter le rendu (mettre à jour l'écran)
     SDL_RenderPresent(*renderer2);
 
     // Boucle d'événements pour maintenir la fenêtre ouverte
     bool running = true;
 }
-
-
 void CreateClickableElement(SDL_Renderer* renderer, int x, int y, int* w, int* h, const char* text, SDL_Color textColor, const char* imagePath, EventCallback callback, int fontSize) {
     // Load background image if provided
     InitLogFile("logs.txt");
