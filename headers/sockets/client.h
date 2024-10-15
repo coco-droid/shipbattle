@@ -5,6 +5,7 @@
 #include <libwebsockets.h>
 #include "json_utils.h"
 
+extern int connected_to_server;
 // Fonction principale pour exécuter le client
 int run_client(const char *ip_host, int port);
 

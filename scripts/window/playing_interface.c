@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "../../headers/window/options_play.h"
+#include "../../headers/sound.h"
 #include <time.h>
 #include "../../headers/events.h"
 #include "../../headers/log.h"
@@ -84,6 +85,7 @@ void DrawWinWidget(SDL_Window* window, SDL_Renderer* renderer, const char* playe
         SDL_SetRenderDrawColor(renderer, 0, 128, 0, 200); // Vert semi-transparent
     } else {
         // Couleur rouge pour la défaite
+        createsound(window, renderer, 0, 4);
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 200); // Rouge semi-transparent
     }
 
@@ -429,6 +431,8 @@ void FireCallback(){
     }
 }
 void PlayingInterface(SDL_Window* Window, SDL_Renderer* Renderer) {
+    Create_Sample(Window, Renderer, 5);
+     createsound(Window, Renderer, -1, 2);
     time_t start_time, end_time;
     start_time = time(NULL);
     SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
@@ -474,11 +478,11 @@ void PlayingInterface(SDL_Window* Window, SDL_Renderer* Renderer) {
     DrawGrid(&play_grid);
     DrawGrid(&radar_grid);
     // Ajouter les textures des bateaux
-    add_texture_ship(&fleet.aircraft_carrier, Renderer, "medias/images/ships/cruiser-180.png", "medias/images/ships/cruiser-90.png");
+    add_texture_ship(&fleet.aircraft_carrier, Renderer, "medias/images/ships/air-180.png", "medias/images/ships/air-90.png");
     add_texture_ship(&fleet.cruiser, Renderer, "medias/images/ships/cruiser-180.png", "medias/images/ships/cruiser-90.png");
-    add_texture_ship(&fleet.destroyer, Renderer, "medias/images/ships/cruiser-180.png", "medias/images/ships/cruiser-90.png");
-    add_texture_ship(&fleet.submarine, Renderer, "medias/images/ships/cruiser-180.png", "medias/images/ships/cruiser-90.png");
-    add_texture_ship(&fleet.torpedo_boat, Renderer, "medias/images/ships/cruiser-180.png", "medias/images/ships/cruiser-90.png");
+    add_texture_ship(&fleet.destroyer, Renderer, "medias/images/ships/destroyer-180.png", "medias/images/ships/destroyer-90.png");
+    add_texture_ship(&fleet.submarine, Renderer, "medias/images/ships/submarine-180.png", "medias/images/ships/submarine-90.png");
+    add_texture_ship(&fleet.torpedo_boat, Renderer, "medias/images/ships/torp-180.png", "medias/images/ships/torp-90.png");
     //Fire button 
 
     DrawFleet(&radar_grid, &fleet);
@@ -530,6 +534,7 @@ void PlayingInterface(SDL_Window* Window, SDL_Renderer* Renderer) {
                         printf("right click");
                     }
                     if (highlight_x != -1 && highlight_y != -1) {
+                        Create_Sample(first_window, first_renderer, 1);
                         int already_selected = 0;
                         printf("selectionner cellule");
                         // Vérifier si cette cellule est déjà sélectionnée
@@ -593,14 +598,17 @@ void PlayingInterface(SDL_Window* Window, SDL_Renderer* Renderer) {
     SDL_DestroyTexture(backgroundTexture);
     end_time = time(NULL);
     double duration = difftime(end_time, start_time);
-    int failed_shots=score_shots-20;//failed shots 
+    int nbre_hints=20-player_two.health;
+    int failed_shots=score_shots-nbre_hints;
     //calculate score with the duration the number of shoots"score_shots" and the number of failed shoot
-    int final_score = (int)(1000 / (duration + 1) * (score_shots - 20)); 
+    int final_score = (int)(1000-(failed_shots+duration)+(nbre_hints+player_one.health)); 
     //fin de jeux
  if (player_one.health == 0) {
     // Le joueur un a perdu
+    createsound(Window, Renderer, 0, 4);
     DrawWinWidget(Window, Renderer, "lose",player_two.name,score_shots,20,duration,final_score);
 } else if (player_two.health == 0) {
+    createsound(Window, Renderer, 0, 3);
     // Le joueur un a gagné
     DrawWinWidget(Window, Renderer, "win",player_one.name,score_shots,20,duration,final_score);
 }

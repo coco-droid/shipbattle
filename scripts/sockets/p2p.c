@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <cjson/cJSON.h>
-
+#include "../../headers/player.h"
 typedef struct p2p_handler_entry {
     char *message_type;
     p2p_handler_t handler;
@@ -65,6 +65,9 @@ void p2p_handle_received_message(struct lws *wsi, const char *message, size_t le
 
     if (!cJSON_IsString(json_type) || !json_data) {
         fprintf(stderr, "Invalid message format\n");
+        //print the json message
+        char *json_str = cJSON_Print(json_message);
+        printf("Invalid message: %s\n", json_str);
         cJSON_Delete(json_message);
         return;
     }
@@ -93,6 +96,8 @@ void handle_player_name(struct lws *wsi, cJSON *data) {
     if (cJSON_IsString(json_name)) {
         const char *player_name = json_name->valuestring;
         printf("Received player name from server: %s\n", player_name);
+        strncpy(player_two.name,player_name, sizeof(player_two.name) - 1);
+        printf("2nd player:%s",player_two.name);
         // Store the server's player name
     }
 }

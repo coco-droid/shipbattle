@@ -10,7 +10,7 @@
 // Prototypes
 char* serialize_matrix(int matrix[10][10]);
 int deserialize_matrix(const char *json_str, int matrix[10][10]);
-
+int connected_to_server=0;
 // Structure pour stocker les données du jeu
 typedef struct {
     int opponent_matrix[10][10];
@@ -23,13 +23,14 @@ static int callback_client(struct lws *wsi, enum lws_callback_reasons reason,
     switch (reason) {
         case LWS_CALLBACK_CLIENT_ESTABLISHED:
             printf("Connecté au serveur\n");
-
+            connected_to_server=1;
             // Send client's player name to the server
-            {
+            
+                printf("send the client name");
                 cJSON *data = cJSON_CreateObject();
                 cJSON_AddStringToObject(data, "name", "ClientPlayerName"); // Replace with actual name
                 p2p_emit(wsi, "player_name", data);
-            }
+            
             break;
 
         case LWS_CALLBACK_CLIENT_RECEIVE:

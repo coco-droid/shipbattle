@@ -6,6 +6,7 @@
 #include <windows.h>
 #include <cjson/cJSON.h> 
 #include "libwebsockets.h"
+#include "../../headers/window/named.h"
 #include "../../headers/sockets/p2p.h"
 #include "../../headers/sockets/server.h"
 
@@ -27,7 +28,7 @@ static int callback_game(struct lws *wsi, enum lws_callback_reasons reason,
             // Send server's player name to the client
             {
                 cJSON *data = cJSON_CreateObject();
-                cJSON_AddStringToObject(data, "name", "ServerPlayerName"); // Replace with actual name
+                cJSON_AddStringToObject(data, "name", playerName); // Replace with actual name
                 p2p_emit(wsi, "player_name", data);
                 // 'data' is freed by p2p_emit
             }

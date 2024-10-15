@@ -18,7 +18,7 @@ void BeforeChooseFleet(SDL_Event *event) {
     InitLogFile("logs.txt");
     if (event->type == SDL_MOUSEBUTTONDOWN) {
         LogMessage("Button 1 clicked!\n");
-        //ShowStartupMenu(first_window,first_renderer);
+        ShowStartupMenu(first_window,first_renderer);
         ClearEvents();
     }
 }
@@ -39,13 +39,28 @@ void USA_fleet(SDL_Event *event)
         player_two_init_state();
         printf("AI matrices:\n");
         afficherMatrice(player_two_grid);
+        ClearEvents();
          ShowPlaceBoat(first_window,first_renderer);
     }
 }
 void Russian_fleet(SDL_Event *event) {
     InitLogFile("logs.txt");
     if (event->type == SDL_MOUSEBUTTONDOWN) {
-        LogMessage("Button 2 clicked!\n");
+        LogMessage("Computer clicked!\n");
+        Fleet player_one_fleet;
+        printf("will initialize the fleet!");
+        initialize_russian_fleet(&player_one_fleet);
+        initialize_player(&player_one,playerName,player_one_fleet,"offline",0,"");
+        printf("fleet initialized!!");
+        if(player_two_init_state==NULL)
+        {
+            printf("player two not initialized");
+        }
+        player_two_init_state();
+        printf("AI matrices:\n");
+        afficherMatrice(player_two_grid);
+        ClearEvents();
+         ShowPlaceBoat(first_window,first_renderer);
     }
 }
 void CloseChooseFleet(SDL_Event *event) {

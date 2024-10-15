@@ -6,6 +6,7 @@
 #include "../../headers/window/dialog_1.h"
 #include <stdio.h>
 #include "../../headers/log.h"
+#include "../../headers/sound.h"
 #include "../../headers/window/named.h"
 
 void Button1Callback(SDL_Event *event) {
@@ -72,6 +73,7 @@ void ShowStartupMenu(SDL_Window* window, SDL_Renderer* renderer) {
     CreateClickableElement(renderer,214,520,&width,&height, "Play", textColor,"medias/images/btn-play.png",Button1Callback,12);
     CreateClickableElement(renderer,16,555,&width2,&height2,NULL, textColor,"medias/images/btn-settings.png",Button2Callback,12);
     CreateClickableElement(renderer,558,11,&width3,&height3,NULL, textColor,"medias/images/btn-close.png",Button3Callback,12);
+    createsound(window, renderer, -1, 1);
     SDL_RenderPresent(renderer);
     // Main loop to handle events and render
   while (*alive) {

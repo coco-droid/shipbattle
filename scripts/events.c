@@ -3,7 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <SDL2/SDL.h>
-
+#include "../headers/sound.h"
+#include "../headers/graphics.h"
 static ClickableArea clickableAreas[MAX_CALLBACKS];
 static TextInput *textInputArea = NULL;
 static int numAreas = 0;
@@ -97,7 +98,7 @@ void TriggerClickCallbacks(int x, int y) {
                 clickEvent.type = SDL_MOUSEBUTTONDOWN;
                 clickEvent.button.x = x;
                 clickEvent.button.y = y;
-
+                Create_Sample(first_window, first_renderer, 2);
                 // Appeler le callback de clic
                 area->onClick(&clickEvent);
             }
@@ -124,6 +125,7 @@ void ProcessEvents(SDL_Window* window, SDL_Renderer* renderer) {
                     ClickableArea* area = &clickableAreas[i];
 
                     if (e.type == SDL_MOUSEBUTTONDOWN && IsInArea(area, e.button.x, e.button.y)) {
+                        Create_Sample(first_window, first_renderer, 2);
                         if (area->onClick) {
                             area->onClick(&e);
                         }

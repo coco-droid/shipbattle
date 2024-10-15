@@ -18,6 +18,58 @@ void validate_ships(int grid[10][10], Fleet *fleet) {
     };
     int num_ships = sizeof(ships) / sizeof(Ships*);
     
+    // Tableau pour stocker les IDs des navires trouvés dans la grille
+    int found_ship_ids[5] = {0};
+    int found_count = 0;
+
+    // Parcourir la grille pour collecter les IDs distincts
+    for (int x = 0; x < 10; x++) {
+        for (int y = 0; y < 10; y++) {
+            int current_id = grid[x][y];
+            if (current_id != 0) {
+                // Vérifier si l'ID est déjà compté
+                int already_found = 0;
+                for (int i = 0; i < found_count; i++) {
+                    if (found_ship_ids[i] == current_id) {
+                        already_found = 1;
+                        break;
+                    }
+                }
+                // Si l'ID n'est pas encore compté, l'ajouter
+                if (!already_found) {
+                    if (found_count < 5) {
+                        found_ship_ids[found_count++] = current_id;
+                    } else {
+                        printf("Erreur: Plus de 5 navires détectés dans la grille.\n");
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    // Vérifier qu'il y a exactement 5 navires
+    if (found_count != 5) {
+        printf("Erreur: Nombre de navires dans la grille invalide (%d au lieu de 5).\n", found_count);
+        return;
+    }
+
+    // Vérifier que les IDs trouvés correspondent aux IDs de la flotte
+    for (int i = 0; i < 5; i++) {
+        int match = 0;
+        for (int j = 0; j < num_ships; j++) {
+            if (found_ship_ids[i] == ships[j]->ship_id) {
+                match = 1;
+                break;
+            }
+        }
+        if (!match) {
+            printf("Erreur: ID de navire %d non reconnu.\n", found_ship_ids[i]);
+            return;
+        }
+    }
+
+    // Maintenant, procéder à la validation individuelle des navires
     for (int i = 0; i < num_ships; i++) {
         Ships *ship = ships[i];
         int ship_id = ship->ship_id;
@@ -167,7 +219,6 @@ void validate_ships(int grid[10][10], Fleet *fleet) {
         }
     }
 }
-
 void player_two_computer_def() {
     printf("Initialisation de l'état du joueur deux\n");
     Fleet player_two_fleet;
